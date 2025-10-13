@@ -53,7 +53,8 @@ Prism.languages.markup = {
 						},
 						{
 							pattern: /^(\s*)["']|["']$/,
-							lookbehind: true
+							lookbehind: true,
+							alias: 'markup-attr-quotes'
 						}
 					]
 				}
