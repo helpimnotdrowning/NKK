@@ -1,0 +1,335 @@
+/*
+	This file is part of NKK.
+
+	NKK is free software: you can redistribute it and/or modify it under the
+	terms of the GNU Affero General Public License as published by the Free
+	Software Foundation, either version 3 of the License, or (at your option)
+	any later version.
+
+	NKK is distributed in the hope that it will be useful, but WITHOUT ANY
+	WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+	more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with NKK. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* PrismJS 1.30.0
+https://prismjs.com/download#themes=prism&languages=markup+css+clike+javascript+bash+batch+c+cpp+css-extras+diff+http+javastacktrace+json+json5+markdown+powershell+python+rust+yaml&plugins=autolinker+custom-class+show-language+autoloader+command-line+toolbar+copy-to-clipboard+match-braces */
+/**
+ * prism.js AO-Dark Violet theme
+ * Based on Ancient One Dark (https://github.com/sigvt/ancient-one-dark)
+ * Using the prism.js default theme as a base
+ * @author Lea Verou (base)
+ * @author uetchy@github (original)
+ * @author helpimnotdrowning (tailwind-ification, ao-dark port to prism.js)
+ */
+
+@theme {
+	--color-ao-violet-darker: #19152a;
+	--color-ao-violet: #2b203f;
+	--color-ao-violet-lighter: #56417e;
+	--color-ao-violet-even-lighter: #7c62ad;
+	
+	--color-ao-white-darker: #a094b7;
+	--color-ao-white: #ede9f5;
+	
+	--color-ao-gold: #fec955;
+}
+
+:not(pre) > code {
+	@apply text-ao-white bg-ao-violet mx-[0.3ch];
+	@apply text-ao-violet-darker bg-ao-white mx-[0.3ch];
+	font-weight: bolder;
+	
+	&::selection, & ::selection {
+		@apply bg-ao-violet-lighter;
+	}
+}
+
+pre > code {
+	@apply border-2 text-ao-white border-ao-gold bg-ao-violet;
+	scrollbar-width: auto;
+	scrollbar-color: var(--color-ao-violet-even-lighter) var(--color-ao-violet);
+}
+
+code[class*="language-"],
+pre[class*="language-"] {
+	text-align: left;
+	word-spacing: normal;
+	line-height: 1.5;
+	@apply whitespace-pre break-normal wrap-normal;
+
+	tab-size: 4;
+	
+	@apply hyphens-none;
+}
+
+pre[class*="language-"], code[class*="language-"] {
+	&::selection, & ::selection {
+		@apply bg-ao-violet-lighter;
+	}
+}
+
+/* Inline code */
+:not(pre) > code[class*="language-"] {
+	@apply rounded-sm whitespace-normal;
+}
+
+.token {
+	/*
+	&.keyword, &.operator {
+		color: #c7a8ed;
+	}
+	
+	&.builtin, &.class-name &{
+		color: #e678e8
+	}
+	
+	&.number {
+		color: #fc6a9d;
+	}
+	
+	&.string, &.char, &.attr-value {
+		color: #e6be7d;
+	}
+	
+	&.symbol, &.variable {
+		color: #c07cff;
+	}
+	
+	&.regex {
+		color: #c0bbcb;
+	}
+	
+	&.constant {
+		color: #b573b4;
+	}
+	
+	&.property {
+		color: #c07cff;
+	}
+	
+	&.punctuation {
+		color: #6C607A;
+	}
+	
+	&.comment, &.prolog, &.doctype, &.cdata {
+		color: #73688d;
+	}
+	
+	&.tag {
+		color: #bba5d4;
+	}
+	
+	&.attr-name {
+		color: #8c76c0;
+	}
+	
+	&.bold {
+		font-style: bold;
+	}
+	
+	&.italic {
+		font-style: italic;
+	}
+	
+	&.selector {
+		color: #bcaee5;
+	}
+	
+	&.inserted {
+		color: #96bd65;
+	}
+	
+	&.deleted {
+		color: #d36666;
+	}
+	
+	&.function, &.boolean, &.url,
+	&.important, &.namespace, &.entity,
+	&.atrule
+	*/
+	
+	&.comment
+		{ @apply text-[#73688d]; }
+	&.string
+		{ @apply text-[#e6be7d]; }
+	&.function, &.class-name
+		{ @apply text-[#e678e8]; }
+	&.namespace
+		{ @apply text-[#e678e8] italic; }
+	&.boolean
+		{ @apply text-[#b573b4]; }
+	&.variable
+		{ @apply text-[#c07cff]; }
+	&.keyword, &.operator
+		{ @apply text-[#c7a8ed]; }
+	&.punctuation
+		{ @apply text-[#c7a8ed]; }
+	&.directive
+		{ @apply italic; }
+	&.number
+		{ @apply text-[#fc6a9d]; }
+	&.tag
+		{ @apply text-[#bba5d4]; }
+	&.attr-name
+		{ @apply text-ao-white; }
+	&.attr-value, &.markup-attr-quotes
+		{ @apply text-[#ddb672]; }
+}
+
+/* .token {
+	&.comment,
+	&.prolog,
+	&.doctype,
+	&.cdata {
+		color: slategray;
+	}
+	
+	&.punctuation {
+		color: #999;
+	}
+	
+	&.namespace {
+		opacity: .7;
+	}
+	
+	&.property, &.tag, &.boolean,
+	&.number, &.constant, &.symbol,
+	&.deleted {
+		color: #905;
+	}
+	
+	&.selector, &.attr-name, &.string,
+	&.char, &.builtin, &.inserted {
+		color: #690;
+	}
+	
+	&.operator, &.entity, &.url,
+	.language-css &.string,
+	.style &.string {
+		color: #9a6e3a;
+		background: hsla(0, 0%, 100%, .5);
+	}
+	
+	&.atrule, &.attr-value, &.keyword {
+		color: #07a;
+	}
+	
+	&.function, &.class-name {
+		color: #DD4A68;
+	}
+	
+	&.regex, &.important, &.variable {
+		color: #e90;
+	}
+	
+	&.important, &.bold {
+		font-weight: bold;
+	}
+	
+	&.italic {
+		font-style: italic;
+	}
+
+	&.entity {
+		cursor: help;
+	}
+
+	& a {
+		color: inherit;
+	}
+} */
+
+div.code-toolbar {
+	position: relative;
+	
+	& > .toolbar {
+		transition: opacity 0.3s ease-in-out;
+		
+		@apply absolute right-4 top-[0.4em] z-10;
+		@apply gap-[1ch] flex opacity-0;
+	}
+	
+	&:hover > .toolbar {
+		@apply opacity-100;
+	}
+	
+	& > .toolbar > .toolbar-item {
+		@apply inline-block cursor-default;
+		
+		& > button, & > a {
+			@apply cursor-pointer;
+		}
+	}
+	
+	& > .toolbar > .toolbar-item {
+		font-size: .8em;
+		padding: 0 .5em;
+		@apply rounded-md;
+		
+		@apply bg-ao-violet text-ao-white;
+		
+		&:has(> button, > a) {
+			@apply border-2 border-ao-gold;
+		}
+		
+		& > span {
+			@apply align-sub;
+		}
+	}
+	
+	& > .toolbar > .toolbar-item {
+		&:hover, &:focus {
+			@apply bg-ao-violet-lighter;
+		}
+	}
+}
+
+/* *** *** *** */
+
+.token.treeview-part {
+	& .entry-line {
+		@apply relative indent-[-99em] inline-block align-top w-[1.2em];
+	}
+	
+	& .entry-name {
+		@apply relative inline-block align-top;
+		@apply ml-[0ch];
+	}
+	
+	& .entry-line + .entry-name {
+		@apply ml-[0.5ch];
+	}
+	
+	& .entry-name.dotfile {
+		@apply opacity-60;
+	}
+	
+	& .entry-name.dir:after {
+		content: "/";
+		
+		@apply text-ao-white-darker;
+	}
+	
+	& .entry-line:before,
+	& .line-h:after {
+		content: "";
+		@apply absolute top-0 left-1/2 w-1/2 h-full;
+	}
+	
+	& .line-h:before,
+	& .line-v:before {
+		@apply border-l border-ao-white-darker;
+	}
+	
+	& .line-v-last:before {
+		@apply h-1/2 border-l border-b border-ao-white-darker;
+	}
+	
+	& .line-h:after {
+		@apply h-1/2 border-b border-ao-white-darker;
+	}
+}

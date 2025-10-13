@@ -1,0 +1,448 @@
+/*
+	This file is part of NKK.
+
+	NKK is free software: you can redistribute it and/or modify it under the
+	terms of the GNU Affero General Public License as published by the Free
+	Software Foundation, either version 3 of the License, or (at your option)
+	any later version.
+
+	NKK is distributed in the hope that it will be useful, but WITHOUT ANY
+	WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+	more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with NKK. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
+ * adapted from https://github.com/tailwindlabs/tailwindcss-typography
+ * :heart:
+ */
+.tx {
+	--tw-prose-body: var(--color-black);
+	--tw-prose-headings: var(--color-gray-900);
+	--tw-prose-lead: var(--color-gray-600);
+	--tw-prose-links: var(--color-blue-700);
+	--tw-prose-bold: var(--color-gray-900);
+	--tw-prose-counters: var(--color-gray-600);
+	--tw-prose-bullets: var(--color-gray-500);
+	--tw-prose-hr: var(--color-gray-400);
+	--tw-prose-quotes: var(--color-gray-900);
+	--tw-prose-quote-borders: var(--color-gray-400);
+	--tw-prose-captions: var(--color-gray-500);
+	--tw-prose-kbd: var(--color-gray-900);
+	--tw-prose-kbd-shadows: var(--color-gray-900);
+	--tw-prose-code: var(--color-gray-900);
+	--tw-prose-pre-code: var(--color-gray-200);
+	--tw-prose-pre-bg: transparent;
+	--tw-prose-th-borders: var(--color-gray-300);
+	--tw-prose-td-borders: var(--color-gray-200);
+	
+	@apply p-10!;
+	
+	color: var(--tw-prose-body);
+	
+	/* lg */
+	font-size: 1.05rem;
+	line-height: 1.5;
+	
+	& img[align="left"] {
+		@apply pr-[20px];
+	}
+	& p {
+		@apply my-[0.5em];
+	}
+	& [class~="lead"] {
+		font-size: 1.22em;
+		line-height: round(32/22);
+		@apply my-[1.09em];
+	}
+	& h1, & h2, h3, & h4 {
+		@apply mt-[1rem] mb-[0.75rem];
+		font-weight: 600;
+		line-height: 1.25;
+		@apply pb-2;
+	}
+	& h1 {
+		font-size: 2.33em;
+		border-bottom: 1px solid var(--tw-prose-hr);
+		
+		color: var(--tw-prose-headings);
+		font-weight: 600;
+		
+		& strong {
+			font-weight: 700;
+		}
+	}
+	& h2 {
+		font-size: 1.66em;
+		border-bottom: 1px solid var(--tw-prose-hr);
+		
+		color: var(--tw-prose-headings);
+		font-weight: 550;
+		
+		& strong {
+			font-weight: 650;
+		}
+		& code {
+			font-size: 0.86em;
+		}
+		
+		& + * {
+			@apply mt-[0px];
+		}
+	}
+	& h3 {
+		font-size: 1.33em;
+		
+		color: var(--tw-prose-headings);
+		font-weight: 550;
+		
+		& strong {
+			font-weight: 600;
+		}
+		& code {
+			font-size: 0.88em
+		}
+		
+		& + * {
+			@apply mt-[0px];
+		}
+	}
+	& h4 {
+		color: var(--tw-prose-headings);
+		font-weight: 500;
+		
+		& strong {
+			font-weight: 600;
+		}
+		
+		& + * {
+			@apply mt-[0px];
+		}
+	}
+	& img, picture {
+		/*@apply my-[1.77em];*/
+	}
+	& picture > img {
+		@apply my-[0px];
+	}
+	& video {
+		/*@apply my-[1.77em];*/
+	}
+	& kbd {
+		font-size: 0.88em;
+		border-radius: 0.28rem;
+		@apply py-[0.22em] px-[0.44em]
+	}
+	& code {
+		font-size: 0.88em;
+	}
+	& ol {
+		padding-inline-start: 1.55em;
+		@apply my-[0.5em];
+	}
+	& ul {
+		@apply /* my-[1.2em] */ ps-[1.55em];
+	}
+	& li {
+		@apply my-[0.25em];
+	}
+	& ol > li {
+		@apply ps-[0.44em];
+	}
+	& ul > li {
+		@apply ps-[0.44em];
+	}
+	& > ul > li p {
+		@apply my-[0.88em];
+	}
+	& > ul > li > p:first-child {
+		@apply mt-[0.25em];
+	}
+	& > ul > li > p:last-child {
+		@apply mb-[0.25em];
+	}
+	& > ol > li > p:first-child {
+		@apply mt-[0.25em];
+	}
+	& > ol > li > p:last-child {
+		@apply mb-[0.25em];
+	}
+	& ul ul, ul ol, ol ul, ol ol {
+		@apply my-[0.5em];
+	}
+	& dl {
+		@apply my-[1.33em];
+	}
+	& dt {
+		@apply mt-[1.33em];
+	}
+	& dd {
+		@apply mt-[0.66em];
+		@apply ps-[1.55em];
+	}
+	& hr {
+		@apply my-[1em];
+	}
+	& hr + * {
+		@apply mt-[0px];
+	}
+	& table {
+		font-size: 0.88em;
+		line-height: round(24 / 16);
+	}
+	& thead th {
+		@apply px-[0.75em] pb-[0.75em];
+	}
+	& figure {
+		@apply my-[1.77em];
+		
+		& > * {
+			@apply my-[0px];
+		}
+	}
+	& figcaption {
+		font-size: 0.88em;
+		line-height: round(24 / 16);
+		@apply mt-[1em];
+	}
+	& > :first-child {
+		@apply mt-[0px];
+	}
+	& > :last-child {
+		@apply mb-[0px];
+	}
+	
+	/* defaults */
+	
+	/* max-width: 65ch; */
+	p {}
+	& [class~="lead"] {
+		color: var(--tw-prose-lead);
+	}
+	& a {
+		color: var(--tw-prose-links);
+		text-decoration: underline;
+	}
+	& strong {
+		color: var(--tw-prose-bold);
+		font-weight: 600;
+	}
+	& a strong {
+		color: inherit;
+	}
+	& blockquote strong {
+		color: inherit;
+	}
+	& thead th strong {
+		color: inherit;
+	}
+	& ol {
+		list-style-type: decimal;
+	}
+	& ol[type="A"] {
+		list-style-type: upper-alpha;
+	}
+	& ol[type="a"] {
+		list-style-type: lower-alpha;
+	}
+	& ol[type="A" s] {
+		list-style-type: upper-alpha;
+	}
+	& ol[type="a" s] {
+		list-style-type: lower-alpha;
+	}
+	& ol[type="-i"] {
+		list-style-type: upper-roman;
+	}
+	& ol[type="i"] {
+		list-style-type: lower-roman;
+	}
+	& ol[type="-i" s] {
+		list-style-type: upper-roman;
+	}
+	& ol[type="i" s] {
+		list-style-type: lower-roman;
+	}
+	& ol[type="1"] {
+		list-style-type: decimal;
+	}
+	& ul {
+		list-style-type: disc;
+	}
+	& ol > li::marker {
+		font-weight: 400;
+		color: var(--tw-prose-counters);
+	}
+	& ul > li::marker {
+		color: var(--tw-prose-bullets);
+	}
+	& dt {
+		color: var(--tw-prose-headings);
+		font-weight: 600;
+	}
+	& hr {
+		border-color: var(--tw-prose-hr);
+		border-top-width: 1px;
+		@apply border-t-[0.25em];
+	}
+	& blockquote {
+		font-weight: 500;
+		font-style: italic;
+		color: var(--tw-prose-quotes);
+		border-inline-start-width: 0.25rem;
+		border-inline-start-color: var(--tw-prose-quote-borders);
+		quotes: '"' '"' "'" "'";
+		
+		@apply my-[1.25em] ps-[1em];
+		
+		& + blockquote {
+			@apply mt-[0px];
+		}
+		
+		/* & p:first-of-type::before {
+			content: open-quote;
+		}
+		
+		& p:last-of-type::after {
+			content: close-quote;
+		} */
+		
+		& pre {
+			@apply ps-[0.5em];
+		}
+	}
+	& img {}
+	& picture {
+		display: block;
+	}
+	& video {}
+	& kbd {
+		font-weight: 500;
+		font-family: inherit;
+		color: var(--tw-prose-kbd);
+		box-shadow:
+		'0 0 0 1px rgb(var(--tw-prose-kbd-shadows) / 10%), 0 3px 0 rgb(var(--tw-prose-kbd-shadows) / 10%)';
+	}
+	& code {
+		/* background-color: #2b203f; moved to 01.prismjs */
+		/* color: #ede9f5; moved to 01.prismjs */
+		/* font-weight: 600; */
+		@apply px-[0.25em];
+		border-radius: 4px;
+		font-weight: inherit;
+		font-size: inherit;
+		@apply font-mono;
+		line-height: inherit;
+		
+		/* border-color: #FEC955; moved to 01.prismjs */
+	}
+	
+	& pre {
+		font-size: 0.88em;
+		line-height: 28/16;
+		border-radius: 0.33rem;
+		@apply my-[1em];
+		@apply py-[0.24em] px-[0.25em];
+		color: var(--tw-prose-pre-code);
+		/* background-color: var(--tw-prose-pre-bg); */
+		background-color: transparent !important;
+		font-weight: 400;
+	}
+	& pre code {
+		@apply /* border-2 moved to 01.prismjs */ rounded-md;
+		@apply font-mono;
+		
+		padding: 0;
+		font-weight: inherit;
+		color: inherit;
+		font-size: inherit;
+		line-height: inherit;
+		display: block;
+		
+		color: #ffffff; /* was: c0bbcb */
+		@apply p-4;
+		
+		overflow-x: visible;
+		overflow-y: hidden;
+
+		/* jp ascii
+		font-family: ＭＳ Ｐゴシック,MS PGothic,IPAMonaPGothic,sans-serif;
+		letter-spacing: 0;
+		font-size: 16px;
+		font-style: normal;
+		font-weight: 400;
+		line-height: 18px; */
+	}
+	& pre code::before {
+		content: none;
+	}
+	& pre code::after {
+		content: none;
+	}
+	& table {
+		width: 100%;
+		table-layout: auto;
+		margin-top: 2em;
+		margin-bottom: 2em;
+		
+		display: block;
+		width: max-content;
+		max-width: 100%;
+		overflow: auto;
+		font-variant-numeric: tabular-nums;
+	}
+	& thead {
+		border-bottom-width: 1px;
+		border-bottom-color: var(--tw-prose-th-borders);
+		
+		& tr {
+			border: 1px solid var(--tw-prose-hr);
+		}
+		
+		& th {
+			color: var(--tw-prose-headings);
+			font-weight: 600;
+			vertical-align: bottom;
+			
+			@apply px-[13px] py-[6px];
+			border: 1px solid var(--tw-prose-hr);
+		}
+	}
+	& tbody tr {
+		border-bottom-width: 1px;
+		border-bottom-color: var(--tw-prose-td-borders);
+		
+		border: 1px solid var(--tw-prose-hr);
+	}
+	& tbody tr:last-child {
+		border-bottom-width: 0;
+	}
+	& tbody td {
+		vertical-align: baseline;
+		
+		@apply px-[13px] py-[6px];
+		border: 1px solid var(--tw-prose-hr);
+	}
+	& tfoot {
+		border-top-width: 1px;
+		border-top-color: var(--tw-prose-th-borders);
+		
+		& td {
+			vertical-align: top;
+		}
+	}
+	& th, td {
+		text-align: start;
+	}
+	& figure > * {}
+	& figcaption {
+		color: var(--tw-prose-captions);
+	}
+	
+	& .footnotes {
+		font-size: smaller;
+	}
+}

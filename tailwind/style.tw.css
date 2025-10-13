@@ -1,0 +1,139 @@
+/*
+	This file is part of NKK.
+
+	NKK is free software: you can redistribute it and/or modify it under the
+	terms of the GNU Affero General Public License as published by the Free
+	Software Foundation, either version 3 of the License, or (at your option)
+	any later version.
+
+	NKK is distributed in the hope that it will be useful, but WITHOUT ANY
+	WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+	more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with NKK. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+@import "tailwindcss" source(none);
+@import "./00.typography.tw.css";
+@import "./01.prismjs.tw.css";
+@import "../public/font/IBMPlexMono-Regular/IBMPlexMono-Regular.css";
+@import "../public/font/IBMPlexSansJP-Regular/IBMPlexSansJP-Regular.css";
+@import "../public/font/IBMPlexSansJP-Bold/IBMPlexSansJP-Bold.css";
+
+@source "../**/*.{ps1,html,css,md}";
+@source not "../public";
+
+@theme {
+	--font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+	--font-sans: 'IBM Plex Sans JP', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+html {
+	@apply bg-fixed bg-linear-to-b;
+	@apply from-green-100 to-green-300;
+	@apply font-sans leading-[1.65];
+}
+
+hr {
+	@apply my-4;
+	@apply text-stone-400;
+}
+
+a {
+	@apply text-blue-600 underline;
+}
+
+a:visited {
+	@apply text-blue-900;
+}
+
+.n-box {
+	@apply w-[min(80%,_var(--container-6xl))];
+	@apply border border-black border-solid;
+	@apply flex flex-col mt-8 mb-20 p-4 rounded-sm drop-shadow-xl;
+	@apply bg-[#ffffff];
+	@apply mx-auto;
+	
+	/* subsequent `n-box`es have their bottom margin shrunk */
+	&:has(+ .n-box) {
+		@apply mb-8;
+	}
+}
+
+.clear-n-box {
+	@apply border-transparent;
+	@apply bg-transparent;
+	@apply drop-shadow-none;
+}
+
+.clickable {
+	@apply bg-gray-100;
+	@apply pl-[0.5ch] pr-[0.5ch];
+	
+	@apply border border-black border-solid;
+	@apply rounded-sm;
+	
+	text-decoration: none;
+	
+	&:hover {
+		@apply bg-gray-200;
+	}
+	
+	&:disabled, &[aria-disabled="True"] {
+		@apply text-stone-400 border-stone-400 pointer-events-none;
+	}
+}
+
+.pfp {
+	@apply drop-shadow-xl/25;
+}
+
+#splash, .you-know-you-want-to {
+	@apply whitespace-nowrap w-min px-[2ch] cursor-pointer;
+	
+	font-smooth: never;
+	
+	animation-duration: .25s;
+	animation-name: splashscale;
+	animation-timing-function: transform 0.6s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+	animation-direction: alternate;
+	animation-iteration-count: infinite;
+	
+	transition-property:        background-color;
+	transition-duration:        0.3s;
+	transition-timing-function: ease-in-out;
+	@apply rounded-md;
+	
+	&:hover {
+		@apply bg-green-400/50;
+	}
+}
+
+@media (prefers-reduced-motion) {
+	#splash, .you-know-you-want-to {
+		transform: rotateZ(-1.5deg);
+		font-smooth: auto;
+		@apply animate-none;
+	}
+}
+
+.post-component {
+	@apply m-2;
+	h1 a {
+		font-size: 2.33em;
+		font-weight: 800;
+		text-decoration: none !important;
+	}
+}
+
+@keyframes splashscale {
+	0% {
+		transform: scale(0.99) rotateZ(-1deg);
+	}
+	
+	100% {
+		transform: scale(1.02) rotateZ(-1deg);
+	}
+}
