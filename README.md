@@ -10,13 +10,13 @@ sudo docker build -t helpimnotdrowning/nkk .
 Run with the following compose definition:
 ```yml
 services:
-	# ...
-	helpimnotdrowning_net:
-		image: helpimnotdrowning/nkk
-		container_name: helpimnotdrowning_net
-		restart: unless-stopped
-		ports:
-			- '8081:8081'
+    # ...
+    helpimnotdrowning_net:
+        image: helpimnotdrowning/nkk
+        container_name: helpimnotdrowning_net
+        restart: unless-stopped
+        ports:
+            - '8081:8081'
 ```
 
 Dependencies are purposefully distributed unminified in support of the
