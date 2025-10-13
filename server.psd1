@@ -70,7 +70,7 @@ Import-Module Mizumiya
 				Enable = $true
 				Include = @(
 					'/font/*',
-					'/prism/grammars/*'
+					'/prism/*'
 				)
 			}
 		}
