@@ -1627,6 +1627,7 @@ if (typeof global !== 'undefined') {
 		"shellsession": "Shell session",
 		"sql": "SQL",
 		"systemd": "Systemd configuration file",
+		"treeview": "Directory tree",
 		"ts": "TypeScript",
 		"tsconfig": "TSConfig",
 		"uri": "URI",
