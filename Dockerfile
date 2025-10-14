@@ -1,5 +1,4 @@
-# syntax=docker/dockerfile:1-labs
-FROM badgerati/pode:latest
+FROM badgerati/pode:2.12.1
 SHELL ["pwsh", "-c"]
 
 RUN apt-get update
