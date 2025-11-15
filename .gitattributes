@@ -1,2 +1,3 @@
 public/** linguist-vendored
-Dockerfile linguist-vendored
+public/style.css linguist-generated
+public/prism/prism-pwsh* -linguist-vendored
