@@ -41,20 +41,7 @@ Site code and modifications to vendored library code (except the IBM Plex font;
 see below) is distrbuted under the AGPLv3 license ([LICENSE.md](LICENSE.md))
 
 External licenses listed at [LICENSE.external.md](LICENSE.external.md):
-
-The [prism.js](https://prismjs.com/) library
-([upstream](https://github.com/PrismJS/prism), local [library](public/prism.js),
-[syntax files](public/prism/grammars/)) is vendored under the MIT license.
-
-The [htmx](https://htmx.org/) library
-([upstream](https://github.com/bigskysoftware/htmx), local
-[library](public/htmx.js)) is vendored under the BSD-0 license.
-
-Members of the [IBM Plex font](https://www.ibm.com/plex/)
-([upstream](https://github.com/IBM/plex), local [font](public/font/)) family
-(Mono and Sans JP) are modified (split) and distributed under the OFL 1.1.
-
-The code theme used in the prism.js style is based off the
-[Ancient One Dark](https://github.com/sigvt/ancient-one-dark) (local
-[theme](tailwind/01.prismjs.tw.css)) "Violet" theme, which is licenced under the
-MIT license.
+* prism.js: MIT
+* htmx: BSD-0
+* IBM Plex font family: OFL 1.1
+* Ancient One Dark style: MIT
