@@ -1,3 +1,13 @@
+NOTE: This license ONLY applies to the source code files in this
+repository. All material under the `sayings/` and `museum/` directories
+(markdown  writing, images, etc.) is separately licensed under the CC BY-NC-SA 4
+with cautions regarding artwork featuring external IPs; see the respective
+[sayings/LICENSE.md](sayings/LICENSE.md) and
+[museum/LICENSE.md](museum/LICENSE.md) files, as well as the
+[README.md](README.md), for details.
+
+---
+
 # GNU AFFERO GENERAL PUBLIC LICENSE
 
 Version 3, 19 November 2007

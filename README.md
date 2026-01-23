@@ -40,8 +40,32 @@ Frontend: HTMX, Tailwind, prism.js (syntax highlighting)
 Site code and modifications to vendored library code (except the IBM Plex font;
 see below) is distrbuted under the AGPLv3 license ([LICENSE.md](LICENSE.md))
 
+
 External licenses listed at [LICENSE.external.md](LICENSE.external.md):
 * prism.js: MIT
 * htmx: BSD-0
+* IBM Plex font family: OFL 1.1
+* Ancient One Dark style: MIT
+
+Blog posts and artwork are separately licensed under the
+[CC BY-NC-SA 4](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+(essentially,) For non-commercial purposes, and as long as  you give credit (link my website or my
+Twitter, mention the CC BY-NC-SA 4), you can remix/transform any of the creative
+works under the `museum/` and `sayings/` directories. Characters/IPs that are not my own may be
+occasionally featured; honestly I'm not sure how the licensing works in that
+case but I ASSUME that you follow the combination of my CC terns and whatever
+derivative use policy the IP has (ie the COVER Corp.
+[Derivative Works Guidelines](https://hololivepro.com/en/terms/)).
+
+The license text mentioned above is also available at
+[sayings/LICENSE.md](sayings/LICENSE.md) and
+[museum/LICENSE.md](museum/LICENSE.md)
+
+These terms are inspired in whole by Jamie Paige's
+[generous music reuse policy](https://jamies.page/stems)! check out her music :D
+
+External licenses listed at [LICENSE.external.md](LICENSE.external.md):
+* prism.js: MIT
+* htmx: BSD-0[LICENSE.md](museum/LICENSE.md)
 * IBM Plex font family: OFL 1.1
 * Ancient One Dark style: MIT
