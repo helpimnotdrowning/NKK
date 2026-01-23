@@ -111,6 +111,10 @@ a:visited {
 }
 
 #splash, .you-know-you-want-to {
+	a {
+		@apply bg-transparent;
+	}
+	
 	@apply whitespace-nowrap w-min px-[2ch] cursor-pointer;
 	
 	font-smooth: never;
