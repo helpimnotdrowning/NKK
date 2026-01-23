@@ -122,7 +122,7 @@
 			@apply mt-[0px];
 		}
 	}
-	& img, picture {
+	& img, & picture {
 		/*@apply my-[1.77em];*/
 	}
 	& picture > img {
@@ -140,23 +140,22 @@
 		font-size: 0.88em;
 	}
 	& ol {
-		padding-inline-start: 1.55em;
-		@apply my-[0.5em];
+		@apply /* my-[0.5em] */ ps-[1.25em];
 	}
 	& ul {
-		@apply /* my-[1.2em] */ ps-[1.55em];
+		@apply /* my-[1.2em] */ ps-[1.25em];
 	}
 	& li {
-		@apply my-[0.25em];
+		/* @apply my-[0.25em]; */
 	}
 	& ol > li {
-		@apply ps-[0.44em];
+		@apply ps-[0.22em];
 	}
 	& ul > li {
-		@apply ps-[0.44em];
+		@apply ps-[0.22em];
 	}
 	& > ul > li p {
-		@apply my-[0.88em];
+		@apply my-[0.44em];
 	}
 	& > ul > li > p:first-child {
 		@apply mt-[0.25em];
@@ -274,9 +273,11 @@
 	}
 	& ol > li::marker {
 		font-weight: 400;
+		font-size: smaller;
 		color: var(--tw-prose-counters);
 	}
 	& ul > li::marker {
+		font-size: smaller;
 		color: var(--tw-prose-bullets);
 	}
 	& dt {

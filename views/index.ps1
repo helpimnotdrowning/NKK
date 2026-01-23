@@ -53,7 +53,7 @@ i would have a portfolio thing here, but for now you can...
 * click the <div class="you-know-you-want-to inline-block p-[0.5ch]!">splash</div> ↑↑↑
 * consider consulting my archives: [files.helpimnotdrowning.net](https://files.helpimnotdrowning.net){$tb}
 	* (currently using Caddy's fileserver but will soon use my own!)
-* collect my pages[:](/garbage/my_pages.png){.$no_underline $tb}
+* collect my pages[:](/garbage/my_pages.png){.$no_underline .hidden-link-lmao $tb}
 	* [My Forgejo instance](https://git.helpimnotdrowning.net/explore/repos){$tb}
 	* [Github](https://github.com/helpimnotdrowning){$tb}
 "@ | ConvertFrom-Markdown | % html
