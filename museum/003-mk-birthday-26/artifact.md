@@ -14,8 +14,8 @@ I'm not terribly confident with anything on the head (eh, the hardest part), so
 most of my drawings for now will hide the open eye in some way.
 
 The outfit was a lot of fun to draw!! Mike-chan doesn't publish any reference
-sheets, so the main reference was the model show-off (tweet deleted!?) and
-fanart. No issue, however!
+sheets (except for Deyui's NEET outfit), so the main reference was the model
+show-off (tweet deleted!?) and fanart. No issue, however!
 
 I think it came out great, but the head was a bit round for her (it seems to
 work better on Pillow) -- regardless, yay!
