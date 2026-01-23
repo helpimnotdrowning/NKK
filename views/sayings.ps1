@@ -16,14 +16,16 @@
 #>
 
 function _post_component {
-	param ($PostData)
+	param ($PostFile)
+	
+	$PostData = _parse_saying_header $PostFile
 	
 	div -Class 'post-component' {
 		h1 -Class 'post-title' {
 			a -Href $PostData.Path -InnerHTML $PostData.Title
 		}
 		p -Class 'flex gap-2' {
-			span -Class 'text-current/50' {$PostData.Created}
+			span -Class 'text-current/50' { $PostData.Created }
 			$PostData.Description
 		}
 	}
@@ -37,12 +39,6 @@ html -Lang en {
 	head {
 		link -Rel stylesheet -Type text/css -Href /style.css
 		_scripts
-		
-		script -Src /prism.js
-		script @"
-Prism.plugins.autoloader.languages_path = '/prism/';
-Prism.plugins.autoloader.use_minified = false;
-"@
 		
 		title Posts
 		meta -Name darkreader-lock
@@ -58,7 +54,7 @@ Prism.plugins.autoloader.use_minified = false;
 			
 			for ($i=0; $i -lt $Posts.Count; $i++) {
 				try {
-					_post_component (_parse_saying_header $Posts[$i])
+					_post_component $Posts[$i]
 					if ($i+1 -ne $Posts.Count) {
 						# add divider after all except last post
 						hr

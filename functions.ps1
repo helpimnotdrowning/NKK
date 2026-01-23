@@ -149,10 +149,17 @@ function _header {
 	}
 }
 
-function _parse_saying_header {
+function _parse_post_header {
 	param ([IO.FileInfo] $Path)
-	$Data = Get-Content $Path | Select-Object -First 1 | ConvertFrom-Json -AsHashtable
+	$Data = Get-Content $Path -Raw | % { ($_ -split '%---')[0] } | ConvertFrom-Json -AsHashtable
 	$Data.Path = (Join-Path /sayings $Path.BaseName)
 	
 	return $Data
+}
+
+function _get_post_content {
+	param ([IO.FileInfo] $Path)
+	$Content = Get-Content $Path -Raw | % { ($_ -split '%---')[1] }
+	
+	return ConvertFrom-Markdown -InputObject $Content | % Html
 }

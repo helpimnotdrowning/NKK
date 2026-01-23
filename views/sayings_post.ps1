@@ -45,7 +45,7 @@ Prism.plugins.autoloader.use_minified = false;
 		_header
 		
 		div -Class "n-box xmin-h-[10em]! tx" -HxDisable {
-			ConvertFrom-Markdown -InputObject (Get-Content $Path | Select-Object -skip 1 | Join-String -Sep "`n") | % Html
+			_get_post_content $Path
 		}
 	}
 }

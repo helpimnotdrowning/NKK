@@ -1,4 +1,9 @@
-{ "Title": "PowerShell syntax test file", "Description": "file test for custom prism.js PowerShell syntax highlighter", "Created": "2025-09-22" }
+{
+	"Title": "PowerShell syntax test file",
+	"Description": "file test for custom prism.js PowerShell syntax highlighter",
+	"Created": "2025-09-22"
+}
+%---
 ## POWERSHELL TEST FILE
 
 ```pwsh

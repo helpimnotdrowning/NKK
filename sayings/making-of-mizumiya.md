@@ -1,4 +1,9 @@
-{ "Title": "Making of Mizumiya", "Description": "Mizumiya's creation story as an HTML DSL for PowerShell, its core functionality, and notes on a few quirks.", "Created": "2025-10-10" }
+{
+	"Title": "Making of Mizumiya",
+	"Description": "Mizumiya's creation story as an HTML DSL for PowerShell, its core functionality, and notes on a few quirks.",
+	"Created": "2025-10-10"
+}
+%---
 # Making of Mizumiya
 
 <img src="img/mizumiya.jpg" align=middle class="mx-64" alt="Logo/banner of Mizumiya" />
