@@ -15,6 +15,4 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 #>
 
-. ./functions.ps1
-
 return _get_splash $WebEvent.Query.Index

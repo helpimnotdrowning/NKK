@@ -15,20 +15,19 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 #>
 
-function _post_component {
-	param ($PostFile)
-	
-	$PostData = _parse_post_header $PostFile -PostType Saying
-	
-	div -Class 'post-component' {
-		h1 -Class 'post-title' {
-			a -Href $PostData.Path -InnerHTML $PostData.Title
-		}
-		p -Class 'flex gap-2' {
-			span -Class 'text-current/50' { $PostData.Created }
-			$PostData.Description
-		}
+# ASSUMING THE PATH HAS BEEN PRECHECKED...
+
+# $Path = $Data.Path
+# $ArtifactData = _parse_post_header $Path -PostType Artifact
+
+$Data | Out-Default
+
+function _artifact_component {
+	gci $Data.ArtifactDirectory | % {
+		img -Src $_.
 	}
+	
+	_get_post_content $Data.ArtifactFile
 }
 
 <# ### ### ### #>
@@ -40,7 +39,7 @@ html -Lang en {
 		link -Rel stylesheet -Type text/css -Href /style.css
 		_scripts
 		
-		title Posts
+		title $ArtifactData.Title
 		meta -Name darkreader-lock
 		meta -Name description -Content ""
 		meta -Name viewport -Content "width=device-width, initial-scale=1"
@@ -49,27 +48,8 @@ html -Lang en {
 	body {
 		_header
 		
-		div -Class 'n-box flex flex-col gap-2' {
-			$Posts = gci $Data.SayingsRoot -Directory | ? { (gci $_).Count -ge 1 }
-			
-			for ($i=0; $i -lt $Posts.Count; $i++) {
-				try {
-					$posts|Out-Default
-					
-					$PostFile = gci $Posts[$i] post.md
-					
-					$PostFile|Out-Default
-					
-					_post_component $PostFile
-					if ($i+1 -ne $Posts.Count) {
-						# add divider after all except last post
-						hr
-					}
-				} catch {
-					# _warn $_
-					throw $_
-				}
-			}
+		div -Class "n-box xmin-h-[10em]! tx" -HxDisable {
+			_artifact_component
 		}
 	}
 }

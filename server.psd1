@@ -45,7 +45,7 @@ Import-Module Mizumiya
 			"Now With Multiplayer!",
 			"Alpha version!",
 			"As seen on TV!",
-			"$(Get-ChildItem -Force -File -Recurse | ? { $_.Extension -notin '.woff2','.jpg','.png','.md','.ico' } | % { cat $_ } | wc -l) lines of code!",
+			# "$(Get-ChildItem -Force -File -Recurse | ? { $_.Extension -notin '.woff2','.jpg','.png','.md','.ico' } | % { cat $_ } | wc -l) lines of code!",
 			# this only runs once on (re)load so its always the same number until the server restarts, good enough?
 			"The instruction at 0x$( "{0:x}" -f (get-random -min 0 -max 0x7fffffff) ) referenced memory at 0x00000000. The memory could not be read. Click [here](/garbage/bugs_when_you_lift_up_a_rock.jpg) to terminate the program.",
 			"buhhhh",

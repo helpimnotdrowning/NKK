@@ -39,9 +39,11 @@ Import-Module Mizumiya
 	}
 }
 
-. ./functions.ps1
+$global:ScriptBase = $PSScriptRoot
+
+New-Variable -Name ScriptBase -Value $PSScriptRoot -Visibility Public -Option ReadOnly,AllScope -Scope Global
 
 Start-PodeServer {
 	# allow dynamic reload of routes without a full server restart (do Ctrl+R !)
-	. ./Routes.ps1
+	. $ScriptBase/Routes.ps1
 }

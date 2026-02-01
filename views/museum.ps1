@@ -15,18 +15,18 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 #>
 
-function _post_component {
-	param ($PostFile)
+function _artifact_preview_component {
+	param ($ArtifactFile)
 	
-	$PostData = _parse_post_header $PostFile -PostType Saying
+	$ArtifactData = _parse_post_header $ArtifactFile -PostType Artifact
+	$ArtifactData.Id = $ArtifactFile.Directory.GetFiles('01-*')[0].Directory.Name
+	$ArtifactData.Image = $ArtifactFile.Directory.GetFiles('01-*')[0].Name
 	
-	div -Class 'post-component' {
-		h1 -Class 'post-title' {
-			a -Href $PostData.Path -InnerHTML $PostData.Title
-		}
-		p -Class 'flex gap-2' {
-			span -Class 'text-current/50' { $PostData.Created }
-			$PostData.Description
+	div -Class 'artifact-component' {
+		img -Src "/museum/$($ArtifactData.Id)/$($ArtifactData.Image)"
+		
+		h1 -Class 'artifact-title' {
+			a -Href "/museum/$($ArtifactData.Id)" -InnerHTML $ArtifactData.Title
 		}
 	}
 }
@@ -40,7 +40,7 @@ html -Lang en {
 		link -Rel stylesheet -Type text/css -Href /style.css
 		_scripts
 		
-		title Posts
+		title Artifacts
 		meta -Name darkreader-lock
 		meta -Name description -Content ""
 		meta -Name viewport -Content "width=device-width, initial-scale=1"
@@ -50,24 +50,18 @@ html -Lang en {
 		_header
 		
 		div -Class 'n-box flex flex-col gap-2' {
-			$Posts = gci $Data.SayingsRoot -Directory | ? { (gci $_).Count -ge 1 }
+			$Artifacts = gci $Data.MuseumRoot -Directory | ? { (gci $_).Count -ge 2 }
 			
-			for ($i=0; $i -lt $Posts.Count; $i++) {
-				try {
-					$posts|Out-Default
-					
-					$PostFile = gci $Posts[$i] post.md
-					
-					$PostFile|Out-Default
-					
-					_post_component $PostFile
-					if ($i+1 -ne $Posts.Count) {
-						# add divider after all except last post
-						hr
+			div -Class 'artifact-holder' {
+				for ($i=0; $i -lt $Artifacts.Count; $i++) {
+					try {
+						$ArtifactFile = gci $Artifacts[$i] artifact.md
+						
+						_artifact_preview_component $ArtifactFile
+					} catch {
+						# _warn $_.ScriptStackTrace
+						throw $_
 					}
-				} catch {
-					# _warn $_
-					throw $_
 				}
 			}
 		}

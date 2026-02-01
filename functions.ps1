@@ -18,6 +18,9 @@
 Import-Module Pode
 Import-Module Mizumiya
 
+$global:ScriptBase = (Get-PodeConfig).NKK.ScriptBase
+write-host "Set $global:ScriptBase"
+
 function _log {
 	param(
 		[Parameter(ValueFromPipeline)]
@@ -84,6 +87,17 @@ function _fatal {
 	_log -Type Fatal $Message
 }
 
+# check if path is a file or a symlink pointing to a file test-path seems to
+# have an issue with strange file names, like "[̸D̶A̴T̷A̸ ̴E̸X̷P̷U̴N̸G̶E̶D̸]̷"
+# this is also an order of magnitude faster than test-path
+function _is_file ([IO.FileSystemInfo] $Path) {
+	return (
+		# [IO.File]::Exists($Path) -or [IO.File]::Exists($Path.linktarget)
+		# $null -ne $Path -and $Path.GetType() -eq [IO.FileInfo]
+		$null -ne $Path -and -not $Path.PSIsContainer
+	)
+}
+
 function _get_splash {
 	param ( $Index )
 	
@@ -104,10 +118,10 @@ function _format_size ([uint64] $size) {
 	}
 }
 
-function _check_joinedpath_is_based ($Root, $JoinedPath) {
+function _check_joinedpath_is_based ($JoinedPath) {
 	$Resolved = Get-Item -LiteralPath $JoinedPath -ErrorAction Ignore
 	
-	return ($null -ne $Resolved -and $Resolved.FullName.StartsWith($Root))
+	return ($null -ne $Resolved -and $Resolved.FullName.StartsWith($ScriptBase))
 }
 
 function _scripts {
@@ -135,6 +149,7 @@ function _header {
 			div -Class 'float-left flex gap-4' {
 				a -Href / { 'Home' }
 				a -Href /sayings { 'Posts' }
+				a -Href /museum { 'Museum' }
 			}
 			div -Class 'float-right' {
 				a `
@@ -150,9 +165,21 @@ function _header {
 }
 
 function _parse_post_header {
-	param ([IO.FileInfo] $Path)
+	[CmdletBinding()]
+	param (
+		[IO.FileInfo] $Path,
+		[ValidateSet('Saying', 'Artifact')]
+		[String] $PostType
+	)
+	
+	$SubPath = switch ($PostType) {
+		'Saying' { '/sayings' }
+		'Artifact' { '/museum' }
+		default { throw 'No PostType was passed to _parse_post_header!' }
+	}
+	
 	$Data = Get-Content $Path -Raw | % { ($_ -split '%---')[0] } | ConvertFrom-Json -AsHashtable
-	$Data.Path = (Join-Path /sayings $Path.BaseName)
+	$Data.Path = (Join-Path $SubPath $Path.BaseName)
 	
 	return $Data
 }
@@ -162,4 +189,22 @@ function _get_post_content {
 	$Content = Get-Content $Path -Raw | % { ($_ -split '%---')[1] }
 	
 	return ConvertFrom-Markdown -InputObject $Content | % Html
+}
+
+function _check_for_artifact {
+	param( $ArtifactId )
+	
+	$ArtifactFile = Join-Path $ScriptBase museum $ArtifactId artifact.md
+	
+	if (-not (_is_file $ArtifactFile)) {
+		Set-PodeResponseStatus -Code 404
+		return $false
+	}
+	
+	if (-not (_check_joinedpath_is_based $ArtifactFile)) {
+		Set-PodeResponseStatus -Code 404
+		return $false
+	}
+	
+	return $true
 }
