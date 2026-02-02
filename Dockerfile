@@ -1,18 +1,17 @@
-FROM badgerati/pode:2.12.1
-SHELL ["pwsh", "-c"]
-
-RUN apt-get update
-RUN apt-get install git -y
-
-RUN git clone https://github.com/helpimnotdrowning/Mizumiya --branch v0.2.0 /tmp/Mizumiya_repo
-RUN mkdir -p /usr/local/share/powershell/Modules/Mizumiya
-RUN cp -r /tmp/Mizumiya_repo/Mizumiya/* /usr/local/share/powershell/Modules/Mizumiya
-
-RUN Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-RUN Install-Module -Name PSParseHTML -RequiredVersion 2.0.2
-
-COPY . /app/NKK/
-
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+ENV ASPNETCORE_HTTP_PORTS=8081
+WORKDIR /app
 EXPOSE 8081
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src/NKK
+COPY NKK.csproj .
+RUN dotnet restore NKK.csproj
+COPY . .
+RUN dotnet publish -o /app/build
+
+FROM base AS final
+WORKDIR /app
+COPY --from=build /app/build /app/NKK
 WORKDIR /app/NKK
-CMD [ "pwsh", "-c", "./Server.ps1" ]
+CMD [ "./NKK" ]

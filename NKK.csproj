@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+
+        <TailwindVersion>v4.1.18</TailwindVersion>
+        <TailwindWatch>true</TailwindWatch>
+        <TailwindInputCssFile>Tailwind/style.tw.css</TailwindInputCssFile>
+        <TailwindOutputCssFile>public/style.css</TailwindOutputCssFile>
+        <TailwindMinifyOnPublish>false</TailwindMinifyOnPublish>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="Content/**/*;public/**/*">
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+    
+    <Target Name="UsePublicNotWwwroot" AfterTargets="Publish">
+        <RemoveDir Directories="$(PublishDir)/wwwroot" />
+    </Target>
+    
+    <ItemGroup>
+      <PackageReference Include="Microsoft.PowerShell.MarkdownRender" Version="7.2.1" />
+      <PackageReference Include="NUglify" Version="1.21.17" />
+      <PackageReference Include="Tailwind.Hosting" Version="1.2.4" />
+      <PackageReference Include="Tailwind.Hosting.Build" Version="1.2.4">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
+</Project>

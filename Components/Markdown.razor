@@ -1,0 +1,56 @@
+@*
+	This file is part of NKK.
+
+	NKK is free software: you can redistribute it and/or modify it under the
+	terms of the GNU Affero General Public License as published by the Free
+	Software Foundation, either version 3 of the License, or (at your option)
+	any later version.
+
+	NKK is distributed in the hope that it will be useful, but WITHOUT ANY
+	WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+	more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with NKK. If not, see <http://www.gnu.org/licenses/>.
+*@
+
+@using System.Text
+@using Microsoft.PowerShell.MarkdownRender
+
+<div @attributes="ExtraAttributes" class="@( UseTypographyStyle == true ? "tx" : "" ) @( ExtraAttributes?["class"] )">
+@* <div @attributes="ExtraAttributes" class="@( UseTypographyStyle == true ? "tx" : "" )"> *@
+	@( (MarkupString)RenderHtml() )
+</div>
+
+@code {
+	[Parameter]
+	public RenderFragment? ChildContent { get; set; }
+	
+	[Parameter]
+	public String? Content { get; set; }
+	
+	[Parameter]
+	public FileInfo? File { get; set; }
+	
+	[Parameter]
+	public bool? UseTypographyStyle { get; set; } = true;
+	
+	[Parameter(CaptureUnmatchedValues = true)]
+	public Dictionary<String, Object>? ExtraAttributes { get; set; }
+
+	private String RenderHtml() {
+		if (ChildContent != null && Content != null && File != null) {
+			throw new ArgumentException("Only one of Content, File, or ChildContent can be set.");
+		}
+		
+		if (File != null) {
+			using StreamReader reader = new StreamReader(File.FullName, Encoding.UTF8);
+			Content = reader.ReadToEnd();
+		} else if (ChildContent != null) {
+			Content = ChildContent.RenderString();
+		} 
+		
+		return MarkdownConverter.Convert(Content ?? String.Empty, MarkdownConversionType.HTML, null).Html;
+	}
+}
