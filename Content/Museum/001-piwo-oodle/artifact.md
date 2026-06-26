@@ -1,9 +1,9 @@
 {
 	"Title": "piwo oodle + speen",
-	"Date": "2026-01-12",
+	"Created": "2026-01-12",
 	"Tags": [ "PillowDear" ],
-	"Posts": {
-		"Twitter": "2010786807483670891"
+	"Links": {
+		"Twitter": [ "2010786807483670891" ]
 	}
 }
 %---

@@ -1,9 +1,9 @@
 {
 	"Title": "pillowdear: adventures in adelaide (we got lost)",
-	"Date": "2026-01-16",
+	"Created": "2026-01-16",
 	"Tags": [ "PillowDear" ],
-	"Posts": {
-		"Twitter": "2012220179388801507"
+	"Links": {
+		"Twitter": [ "2012220179388801507" ]
 	}
 }
 %---

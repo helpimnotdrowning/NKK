@@ -1,9 +1,9 @@
 {
 	"Title": "るしあ's Birthday!! (2026)",
-	"Date": "2026-01-22",
+	"Created": "2026-01-22",
 	"Tags": [ "Uruha Rushia", "Birthday" ],
-	"Posts": {
-		"Twitter": "2014194702581379253"
+	"Links": {
+		"Twitter": [ "2014194702581379253" ]
 	}
 }
 %---

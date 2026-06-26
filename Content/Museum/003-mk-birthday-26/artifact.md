@@ -1,9 +1,9 @@
 {
 	"Title": "みけねこ's Birthday!! (2026)",
-	"Date": "2026-01-18",
+	"Created": "2026-01-18",
 	"Tags": [ "Mikeneko", "Birthday" ],
-	"Posts": {
-		"Twitter": "2012666150585274404"
+	"Links": {
+		"Twitter": [ "2012666150585274404" ]
 	}
 }
 %---
