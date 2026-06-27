@@ -7,17 +7,10 @@
         "launchBrowser": true,
         "applicationUrl": "http://localhost:5274",
         "environmentVariables": {
-          "ASPNETCORE_ENVIRONMENT": "Development"
-        }
-      },
-      "https": {
-        "commandName": "Project",
-        "dotnetRunMessages": true,
-        "launchBrowser": true,
-        "applicationUrl": "https://localhost:7229;http://localhost:5274",
-        "environmentVariables": {
+          "ALL_POSTS_ROOT": "/srv/NKK/posts",
           "ASPNETCORE_ENVIRONMENT": "Development",
-          "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Tailwind.Hosting"
+          "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Tailwind.Hosting",
+          "DEBUG": "tailwindcss:*"
         }
       }
     }

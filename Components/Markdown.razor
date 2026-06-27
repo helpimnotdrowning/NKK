@@ -18,8 +18,7 @@
 @using System.Text
 @using Microsoft.PowerShell.MarkdownRender
 
-<div @attributes="ExtraAttributes" class="@( UseTypographyStyle == true ? "tx" : "" ) @( ExtraAttributes?["class"] )">
-@* <div @attributes="ExtraAttributes" class="@( UseTypographyStyle == true ? "tx" : "" )"> *@
+<div @attributes="ExtraAttributes" class="@( UseTypographyStyle == true ? "tx" : "" ) @( ExtraAttributes?.GetValueOrDefault("class", "") )">
 	@( (MarkupString)RenderHtml() )
 </div>
 

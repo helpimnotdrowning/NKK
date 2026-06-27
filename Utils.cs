@@ -18,6 +18,7 @@
 #pragma warning disable BL0006
 
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.RenderTree;
@@ -44,6 +45,32 @@ public static class Utils {
 	
 	public static String OptimizeHtml(String html) {
 		return Uglify.Html(html, HtmlSettings).Code ?? String.Empty;
+	}
+
+	public static T? ReadPost<T>(DirectoryInfo postDirectory) where T : class, IPostPayload, new() {
+		FileInfo? postFile = postDirectory.EnumerateFiles().SingleOrDefault(f => f != null && f.Name == T.PostFile, null);
+		if (postFile == null) return null;
+		
+		using StreamReader reader = new StreamReader(postFile.FullName, Encoding.UTF8);
+		String[] rawContent = reader.ReadToEnd().Split("%---", 2);
+		String[] ids = postDirectory.Name.Split('-',2);
+
+		dynamic payloadJson = JsonSerializer.Deserialize(rawContent[0], T.JsonTarget, new JsonSerializerOptions())
+			?? throw new JsonException($"Failed to parse payload for {postDirectory.FullName}");
+
+		T payload = new T {
+			PostDirectory = postDirectory,
+			PostFileLastModified = postFile.LastWriteTimeUtc,
+			Id = new PostId {
+				FullId = postDirectory.Name,
+				NumericId = Int32.Parse(ids[0]),
+				TitleId = ids[1]				
+			}
+		};
+		
+		payload.LoadJson(payloadJson);
+		
+		return payload;
 	}
 	
 	extension<T>(IEnumerable<T> enumerable) {

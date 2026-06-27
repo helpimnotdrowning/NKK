@@ -22,7 +22,7 @@
 @import "../public/font/IBMPlexSansJP-Regular/IBMPlexSansJP-Regular.css";
 @import "../public/font/IBMPlexSansJP-Bold/IBMPlexSansJP-Bold.css";
 
-@source "../**/*.{ps1,html,css,md}";
+@source "../**/*.{razor,cs,html,css,md}";
 @source not "../public";
 
 @theme {

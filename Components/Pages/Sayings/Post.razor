@@ -1,4 +1,4 @@
-﻿@*
+@*
 	This file is part of NKK.
 
 	NKK is free software: you can redistribute it and/or modify it under the
@@ -15,33 +15,24 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 *@
 
-@inherits LayoutComponentBase
+@page "/sayings/{TitleId}"
+@inject PostStore PostStore
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	
-	<link rel="stylesheet" type="text/css" href="@Assets["/style.css"]" />
-	
-	<script src="@Assets["/htmx.js"]"></script>
-	<meta name="htmx-config" content='{"scrollIntoViewOnBoost":false}' />
-	
-	<meta name="darkreader-lock" />
-	
-	<HeadOutlet />
-	@* blank placeholder title, overriden (usually) in @Body *@
-	<AppTitle></AppTitle>
-</head>
-<body>
-	<Header />
+<AppTitle>@PostData.Title</AppTitle>
+<UsePrism />
 
-	@* maybe also stuff this in <Header> *@
-	<NavMenu />
+<Markdown Content="@PostData.GetMarkdown()" hx-disable></Markdown>
 
-	<div class="n-box">
-		@Body
-	</div>
-</body>
-</html>
+@code {
+	[Parameter]
+	public required String TitleId { get; set; }
+
+	public required SayingPayload PostData;
+	
+	
+	protected override Task OnInitializedAsync() {
+		PostData = PostStore.GetSaying(TitleId);
+		
+		return base.OnInitializedAsync();
+	}
+}

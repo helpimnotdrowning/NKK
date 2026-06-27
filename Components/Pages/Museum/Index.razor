@@ -1,4 +1,4 @@
-﻿@*
+@*
 	This file is part of NKK.
 
 	NKK is free software: you can redistribute it and/or modify it under the
@@ -15,33 +15,29 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 *@
 
-@inherits LayoutComponentBase
+@page "/museum"
+@inject PostStore PostStore
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	
-	<link rel="stylesheet" type="text/css" href="@Assets["/style.css"]" />
-	
-	<script src="@Assets["/htmx.js"]"></script>
-	<meta name="htmx-config" content='{"scrollIntoViewOnBoost":false}' />
-	
-	<meta name="darkreader-lock" />
-	
-	<HeadOutlet />
-	@* blank placeholder title, overriden (usually) in @Body *@
-	<AppTitle></AppTitle>
-</head>
-<body>
-	<Header />
+<div class="flex flex-col gap-2">
+	@foreach (var p in Posts) {
+		<div class="post-component" id="artifact-@p.Id.FullId">
+			<h2 class="post-title">
+				<a href="/museum/@p.Id.FullId">@p.Title</a>
+			</h2>
+			<p class="flex gap-2">
+				<span class="text-current/50">@p.Created.ToString("yyyy-MM-dd")</span>
+				@p.Title
+			</p>
+		</div>
+	}
+</div>
 
-	@* maybe also stuff this in <Header> *@
-	<NavMenu />
-
-	<div class="n-box">
-		@Body
-	</div>
-</body>
-</html>
+@code {
+	public required IEnumerable<ArtifactPayload> Posts;
+	
+	protected override Task OnInitializedAsync() {
+		Posts = PostStore.GetAllArtifacts();
+		
+		return base.OnInitializedAsync();
+	}
+}

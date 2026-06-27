@@ -42,6 +42,13 @@ builder.Services.Configure<GzipCompressionProviderOptions>(options => {
 	options.Level = CompressionLevel.SmallestSize;
 });
 
+builder.Services.AddSingleton<PostStore>();
+builder.Services.Configure<PostWatcherOptions>(opts => {
+	opts.AllPostsRoot = new DirectoryInfo(Environment.GetEnvironmentVariable("ALL_POSTS_ROOT") ??
+		throw new ArgumentException("env:ALL_POSTS_ROOT is unset!"));
+});
+builder.Services.AddHostedService<PostWatcher>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

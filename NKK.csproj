@@ -14,7 +14,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Include="Content/**/*;public/**/*">
+        <Content Include="public/**/*">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -22,6 +22,17 @@
     
     <Target Name="UsePublicNotWwwroot" AfterTargets="Publish">
         <RemoveDir Directories="$(PublishDir)/wwwroot" />
+    </Target>
+
+    <!-- this is nixos' fault -->
+    <Target Name="UseSystemTailwindcssIfPresent"
+            AfterTargets="TailwindSetupExecutable"
+            Condition="Exists('/etc/NIXOS')">
+        <Exec Command="which tailwindcss" ConsoleToMsBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="which_tailwindcss" />
+        </Exec>
+        <Exec Command="rm $(_TailwindExecutablePath)" />
+        <Exec Command="ln -s $(which_tailwindcss) $(_TailwindExecutablePath)" />
     </Target>
     
     <ItemGroup>
