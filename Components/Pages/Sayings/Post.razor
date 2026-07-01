@@ -15,8 +15,10 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 *@
 
-@page "/sayings/{TitleId}"
+@page "/sayings/{FullId}"
 @inject PostStore PostStore
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
 
 <AppTitle>@PostData.Title</AppTitle>
 <UsePrism />
@@ -27,11 +29,15 @@
 	[Parameter]
 	public required String TitleId { get; set; }
 
-	public required SayingPayload PostData;
-	
+	public required SayingPayload? PostData;
 	
 	protected override Task OnInitializedAsync() {
-		PostData = PostStore.GetSaying(TitleId);
+		PostData = PostStore.Get<SayingPayload>(TitleId);
+
+		if (PostData == null) {
+			HttpContextAccessor.HttpContext!.Response.StatusCode = StatusCodes.Status404NotFound;
+			NavigationManager.NotFound();
+		}
 		
 		return base.OnInitializedAsync();
 	}

@@ -16,9 +16,12 @@
 *@
 
 @using System.Text
-@using Microsoft.PowerShell.MarkdownRender
+@using Markdig.Syntax
+@using Markdig.Syntax.Inlines
+@using NUglify.Helpers
+@inject IHttpContextAccessor HttpContextAccessor
 
-<div @attributes="ExtraAttributes" class="@( UseTypographyStyle == true ? "tx" : "" ) @( ExtraAttributes?.GetValueOrDefault("class", "") )">
+<div @attributes="ExtraAttributes" class="@( UseTypographyStyle ? "tx" : "" ) @( ExtraAttributes?.GetValueOrDefault("class", "") )">
 	@( (MarkupString)RenderHtml() )
 </div>
 
@@ -33,7 +36,7 @@
 	public FileInfo? File { get; set; }
 	
 	[Parameter]
-	public bool? UseTypographyStyle { get; set; } = true;
+	public bool UseTypographyStyle { get; set; } = true;
 	
 	[Parameter(CaptureUnmatchedValues = true)]
 	public Dictionary<String, Object>? ExtraAttributes { get; set; }
@@ -48,8 +51,19 @@
 			Content = reader.ReadToEnd();
 		} else if (ChildContent != null) {
 			Content = ChildContent.RenderString();
-		} 
+		}
 		
-		return MarkdownConverter.Convert(Content ?? String.Empty, MarkdownConversionType.HTML, null).Html;
+		var md = new MarkdownConverter(Content ?? String.Empty);
+
+		// fix relative links to be absolute at page base
+		// browser interprets relative links with base at /, not current page
+		md.Document.Descendants()
+			.OfType<LinkInline>()
+			.ForEach(link => {
+				if (link.Url != null && !Utils.IsAbsoluteUrl(link.Url))
+					link.Url = Path.Combine(HttpContextAccessor.HttpContext!.Request.Path, link.Url); 
+			});
+
+		return md.ToHtml();
 	}
 }

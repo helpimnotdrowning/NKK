@@ -19,7 +19,12 @@ using System.IO.Compression;
 using System.Text;
 using NKK.Components;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.FileProviders;
 using NKK;
+
+String allPostsRoot = Environment.GetEnvironmentVariable("ALL_POSTS_ROOT") ??
+	throw new ArgumentException("env:ALL_POSTS_ROOT is unset!");
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions() {
 	Args = args,
@@ -27,6 +32,7 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions() {
 });
 
 // Add services to the container.
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddRazorComponents();
 builder.Services.AddResponseCompression(options => {
 	options.EnableForHttps = true;
@@ -52,7 +58,9 @@ builder.Services.AddHostedService<PostWatcher>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment()) {
+if (app.Environment.IsDevelopment()) {
+	app.UseDeveloperExceptionPage();
+} else {
 	app.UseExceptionHandler("/Error", createScopeForErrors: true);
 	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 	app.UseHsts();
@@ -92,7 +100,27 @@ app.Use(async (context, next) => {
 	context.Response.Body = responseStream;
 });
 
+var validFileTypes = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase) {
+	{ ".png", "image/png" },
+	{ ".jpg", "image/jpeg" },
+	{ ".jpeg", "image/jpeg" },
+	{ ".md", "text/markdown" },
+};
+
 app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions {
+	FileProvider = new PhysicalFileProvider(Path.Combine(allPostsRoot, SayingPayload.PathFragment)),
+	RequestPath = "/sayings",
+	ServeUnknownFileTypes = false,
+	ContentTypeProvider = new FileExtensionContentTypeProvider(validFileTypes),
+});
+app.UseStaticFiles(new StaticFileOptions {
+	FileProvider = new PhysicalFileProvider(Path.Combine(allPostsRoot, ArtifactPayload.PathFragment)),
+	RequestPath = "/museum",
+	ServeUnknownFileTypes = false,
+	ContentTypeProvider = new FileExtensionContentTypeProvider(validFileTypes),
+});
+
 app.MapRazorComponents<App>();
 
 app.Run();

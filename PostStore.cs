@@ -20,42 +20,27 @@ using System.Collections.Concurrent;
 namespace NKK;
 
 public class PostStore {
-	private readonly ConcurrentDictionary<String, SayingPayload> _sayings = new();
-	private readonly ConcurrentDictionary<String, ArtifactPayload> _artifacts = new();
-
-	#region Sayings
-	public IEnumerable<SayingPayload> GetAllSayings() {
-		return this._sayings.Values;
-	}
+	private readonly ConcurrentDictionary<Type, ConcurrentDictionary<String, Object>> _posts = new();
 	
-	public SayingPayload GetSaying(String id) {
-		return this._sayings[id];
+	public IEnumerable<T> GetAll<T>() where T : class, IPostPayload {
+		if (!this._posts.ContainsKey(typeof(T)))
+			return [];
+		
+		return this._posts[typeof(T)].Values.Cast<T>();
 	}
 
-	public void AddOrUpdateSaying(String id, SayingPayload saying) {
-		this._sayings[id] = saying;
+	public T? Get<T>(String id) where T : class, IPostPayload {
+		return this._posts[typeof(T)].TryGetValue(id, out var post) ? (T)post : null;
 	}
 
-	public void RemoveSaying(String id) {
-		this._sayings.Remove(id, out _);
-	}
-	#endregion
-	
-	#region Artifacts
-	public IEnumerable<ArtifactPayload> GetAllArtifacts() {
-		return this._artifacts.Values.OrderByDescending(p => p.Id);
-	}
-	
-	public ArtifactPayload GetArtifact(String id) {
-		return this._artifacts[id];
+	public void AddOrUpdate<T>(String id, T post) where T : class, IPostPayload {
+		if (!this._posts.ContainsKey(typeof(T)))
+			this._posts[typeof(T)] = new ConcurrentDictionary<String, Object>();
+		
+		this._posts[typeof(T)][id] = post;
 	}
 
-	public void AddOrUpdateArtifact(String id, ArtifactPayload saying) {
-		this._artifacts[id] = saying;
+	public void Remove<T>(String id) where T : class, IPostPayload {
+		this._posts[typeof(T)].Remove(id, out _);
 	}
-
-	public void RemoveArtifact(String id) {
-		this._artifacts.Remove(id, out _);
-	}
-	#endregion
 }

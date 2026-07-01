@@ -16,6 +16,7 @@
 *@
 
 @inherits LayoutComponentBase
+@inject IHttpContextAccessor Context
 
 <!DOCTYPE html>
 <html lang="en">
@@ -34,14 +35,32 @@
 	@* blank placeholder title, overriden (usually) in @Body *@
 	<AppTitle></AppTitle>
 </head>
-<body>
-	<Header />
-
-	@* maybe also stuff this in <Header> *@
-	<NavMenu />
-
-	<div class="n-box">
+@if (_hasError) {
+	<body class="from-red-400! to-red-500!">
 		@Body
-	</div>
-</body>
+	</body>
+} else {
+	<body>
+		<Header />
+
+		@* maybe also stuff this in <Header> *@
+		<NavMenu />
+
+		<div class="n-box">
+			@Body
+		</div>
+	</body>
+}
 </html>
+
+@code {
+
+	private bool _hasError;
+
+	protected override Task OnInitializedAsync() {
+		_hasError = Context.HttpContext!.Response.StatusCode >= 400;
+		
+		return base.OnInitializedAsync();
+	}
+
+}

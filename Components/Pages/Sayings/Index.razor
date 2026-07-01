@@ -37,7 +37,7 @@
 	public required IEnumerable<SayingPayload> Posts;
 	
 	protected override Task OnInitializedAsync() {
-		Posts = PostStore.GetAllSayings().OrderBy(p => p.Id.NumericId);
+		Posts = PostStore.GetAll<SayingPayload>().OrderByDescending(p => p.Id.NumericId);
 		
 		return base.OnInitializedAsync();
 	}

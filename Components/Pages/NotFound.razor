@@ -17,6 +17,22 @@
 
 @page "/not-found"
 @layout MainLayout
+@inject IHttpContextAccessor context
 
-<h3>Not Found</h3>
-<p>Sorry, the content you are looking for does not exist.</p>
+<AppTitle>OOPSIE WOOPSIE!!</AppTitle>
+
+<div class="n-box text-center gap-2">
+	<h1>
+		<span class="text-6xl">@context.HttpContext!.Response.StatusCode</span>
+		<br />
+		<span class="text-4xl">
+			@Microsoft.AspNetCore.WebUtilities.ReasonPhrases.GetReasonPhrase(
+				context.HttpContext.Response.StatusCode
+			)
+		</span>
+	</h1>
+	<hr/>
+	OOPSIE WOOPSIE!! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!
+	<hr/>
+	<a href="/" class="clickable p-4">go home......</a>
+</div>

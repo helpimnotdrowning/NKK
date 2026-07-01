@@ -36,7 +36,7 @@
 	public required IEnumerable<ArtifactPayload> Posts;
 	
 	protected override Task OnInitializedAsync() {
-		Posts = PostStore.GetAllArtifacts();
+		Posts = PostStore.GetAll<ArtifactPayload>().OrderByDescending(p => p.Id.NumericId);
 		
 		return base.OnInitializedAsync();
 	}

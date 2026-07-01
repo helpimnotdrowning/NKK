@@ -15,8 +15,10 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 *@
 
-@page "/museum/{TitleId}"
+@page "/museum/{FullId}"
 @inject PostStore PostStore
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
 
 <AppTitle>@ArtifactData.Title</AppTitle>
 <UsePrism />
@@ -27,10 +29,15 @@
 	[Parameter]
 	public required String TitleId { get; set; }
 
-	public required ArtifactPayload ArtifactData;
+	public required ArtifactPayload? ArtifactData;
 	
 	protected override Task OnInitializedAsync() {
-		ArtifactData = PostStore.GetArtifact(TitleId);
+		ArtifactData = PostStore.Get<ArtifactPayload>(TitleId);
+		
+		if (ArtifactData == null) {
+			HttpContextAccessor.HttpContext!.Response.StatusCode = StatusCodes.Status404NotFound;
+			NavigationManager.NotFound();
+		}
 		
 		return base.OnInitializedAsync();
 	}

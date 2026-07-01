@@ -19,6 +19,7 @@
 
 using System.Text;
 using System.Text.Json;
+using FluentResults;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.RenderTree;
@@ -47,24 +48,48 @@ public static class Utils {
 		return Uglify.Html(html, HtmlSettings).Code ?? String.Empty;
 	}
 
-	public static T? ReadPost<T>(DirectoryInfo postDirectory) where T : class, IPostPayload, new() {
+	public enum ReadPostReason {
+		NoPost,
+		PayloadDeserialize,
+		InvalidNumericId
+	}
+	
+	public class ReadPostError(ReadPostReason NKK_Reason, String message) : FluentResults.IError {
+		public ReadPostReason NKK_Reason { get; }
+		public String Message { get; }
+		public Dictionary<String, Object> Metadata { get; }
+		public List<IError> Reasons { get; }
+	}
+	
+	public static Result<T> ReadPost<T>(DirectoryInfo postDirectory) where T : class, IPostPayload, new() {
 		FileInfo? postFile = postDirectory.EnumerateFiles().SingleOrDefault(f => f != null && f.Name == T.PostFile, null);
-		if (postFile == null) return null;
+		if (postFile == null)
+			return Result.Fail(new ReadPostError(ReadPostReason.NoPost, $"Directory {postDirectory.FullName} has no {T.PathFragment} file"));
 		
 		using StreamReader reader = new StreamReader(postFile.FullName, Encoding.UTF8);
 		String[] rawContent = reader.ReadToEnd().Split("%---", 2);
 		String[] ids = postDirectory.Name.Split('-',2);
 
-		dynamic payloadJson = JsonSerializer.Deserialize(rawContent[0], T.JsonTarget, new JsonSerializerOptions())
-			?? throw new JsonException($"Failed to parse payload for {postDirectory.FullName}");
+		dynamic? payloadJson;
+		
+		try {
+			payloadJson = JsonSerializer.Deserialize(rawContent[0], T.JsonTarget, new JsonSerializerOptions());
+			if (payloadJson == null)
+				return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize, $"Payload for {postDirectory.FullName} was null"));
+		} catch (JsonException e) {
+			return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize, $"Failed to parse payload for {postDirectory.FullName}: {e.Message}"));
+		}
 
+		if (!Int32.TryParse(ids[0], out int numericId))
+			return Result.Fail(new ReadPostError(ReadPostReason.InvalidNumericId, $"Numeric ID for post '{postDirectory.FullName}' could not be parsed"));
+		
 		T payload = new T {
 			PostDirectory = postDirectory,
 			PostFileLastModified = postFile.LastWriteTimeUtc,
 			Id = new PostId {
 				FullId = postDirectory.Name,
-				NumericId = Int32.Parse(ids[0]),
-				TitleId = ids[1]				
+				NumericId = numericId,
+				TitleId = ids[1],
 			}
 		};
 		
@@ -73,6 +98,19 @@ public static class Utils {
 		return payload;
 	}
 	
+	public static bool IsAbsoluteUrl(String url) {
+		return Uri.TryCreate(url, UriKind.Absolute, out _);
+	}
+
+	public static void WriteException(Exception? ex) {
+		while (ex != null) {
+			Console.WriteLine($"ERROR: watcher failed! ${ex.GetType()}: ${ex.Message}");
+			Console.WriteLine(ex.StackTrace);
+			Console.WriteLine();
+			ex = ex.InnerException;
+		}
+	}
+
 	extension<T>(IEnumerable<T> enumerable) {
 		public T RandomElement() {
 			int index = (new Random()).Next(0, enumerable.Count());

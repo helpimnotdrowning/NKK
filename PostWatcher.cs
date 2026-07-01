@@ -17,6 +17,7 @@
 
 using Microsoft.Extensions.Options;
 using NUglify.Helpers;
+using ThrottleDebounce;
 
 namespace NKK;
 
@@ -25,62 +26,82 @@ public class PostWatcherOptions {
 }
 
 public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> options) : BackgroundService {
+	private Action _debouncedUpdate;
+	
+	// TODO: seems to stop watching on exception? i think???
 	protected override Task ExecuteAsync(CancellationToken stoppingToken) {
-		List<String> addedSayings = [];
-		List<String> addedArtifacts = [];
+		this.UpdateAllStores();
+
+		var watcher = new FileSystemWatcher(options.Value.AllPostsRoot!.FullName) {
+			NotifyFilter = NotifyFilters.Attributes
+				| NotifyFilters.CreationTime
+				| NotifyFilters.DirectoryName
+				| NotifyFilters.FileName
+				| NotifyFilters.LastWrite
+				| NotifyFilters.Security
+				| NotifyFilters.Size,
+			IncludeSubdirectories = true,
+			EnableRaisingEvents = true,
+		};
+
+		this._debouncedUpdate = Debouncer.Debounce(
+			(Action)this.UpdateAllStores, TimeSpan.FromSeconds(5), leading: true, trailing: false
+		).Invoke;
 		
-		IEnumerable<SayingPayload> sayings = postStore.GetAllSayings().ToList();
-		sayings.ForEach((post) => {
-			var newPost = Utils.ReadPost<SayingPayload>(post.PostDirectory);
-			if (newPost == null) {
-				postStore.RemoveSaying(post.Id.FullId);
+		watcher.Changed += this.UpdateStore_EventWrapper;
+		watcher.Created += this.UpdateStore_EventWrapper;
+		watcher.Deleted += this.UpdateStore_EventWrapper;
+		watcher.Renamed += this.UpdateStore_EventWrapper;
+		watcher.Error += (sender, e) => {
+			Utils.WriteException(e.GetException());
+		};
+		
+		return Task.CompletedTask;
+	}
+
+	private void UpdateStore_EventWrapper(Object sender, FileSystemEventArgs e) {
+		if (e is RenamedEventArgs re) {
+			Console.WriteLine($"{DateTime.Now}: Got FileSystemEvent: File '{re.OldName}' experienced {re.ChangeType} (to '{re.Name}')");			
+		} else {
+			Console.WriteLine($"{DateTime.Now}: Got FileSystemEvent: File '{e.Name}' experienced {e.ChangeType}");	
+		}
+		
+		this._debouncedUpdate();
+	}
+
+	private void UpdateStore<T>() where T : class, IPostPayload, new() {
+		// Now That's What I Call Type Safety!
+		
+		List<String> addedPosts = [];
+		
+		IEnumerable<T> posts = postStore.GetAll<T>().ToList();
+		posts.ForEach(post => {
+			var newPost = Utils.ReadPost<T>(post.PostDirectory);
+			if (newPost.IsFailed) {
+				postStore.Remove<T>(post.Id.FullId);
 				return;
 			}
 			
-			if (post.PostFileLastModified == newPost.PostFileLastModified) return;
+			if (post.PostFileLastModified == newPost.Value.PostFileLastModified) return;
 			
 			// please do not change post IDs while live...
-			postStore.AddOrUpdateSaying(post.Id.FullId, newPost);
-			addedSayings.Add(post.PostDirectory.FullName);
+			postStore.AddOrUpdate<T>(post.Id.FullId, newPost.Value);
+			addedPosts.Add(post.PostDirectory.FullName);
 		});
 
-		new DirectoryInfo(Path.Combine(options.Value.AllPostsRoot.FullName, SayingPayload.PathFragment)).EnumerateDirectories()
-			.Where(d => !addedSayings.Contains(d.FullName))
+		new DirectoryInfo(Path.Combine(options.Value.AllPostsRoot!.FullName, T.PathFragment)).EnumerateDirectories()
+			.Where(d => !addedPosts.Contains(d.FullName))
 			.ForEach(d => {
-				var post = Utils.ReadPost<SayingPayload>(d);
-				if (post == null) return;
+					var post = Utils.ReadPost<T>(d);
+					if (post.IsFailed) return;
 				
-				postStore.AddOrUpdateSaying(post.Id.FullId, post);
-			}
-		);
-		
-		/* *** *** *** */
-		
-		IEnumerable<ArtifactPayload> artifacts = postStore.GetAllArtifacts().ToList();
-		artifacts.ForEach((post) => {
-			var newPost = Utils.ReadPost<ArtifactPayload>(post.PostDirectory);
-			if (newPost == null) {
-				postStore.RemoveArtifact(post.Id.FullId);
-				return;
-			}
-			
-			if (post.PostFileLastModified == newPost.PostFileLastModified) return;
-			
-			// please do not change post IDs while live...
-			postStore.AddOrUpdateArtifact(post.Id.FullId, newPost);
-			addedArtifacts.Add(post.PostDirectory.FullName);
-		});
-
-		new DirectoryInfo(Path.Combine(options.Value.AllPostsRoot.FullName, ArtifactPayload.PathFragment)).EnumerateDirectories()
-			.Where(d => !addedArtifacts.Contains(d.FullName))
-			.ForEach(d => {
-					var post = Utils.ReadPost<ArtifactPayload>(d);
-					if (post == null) return;
-				
-					postStore.AddOrUpdateArtifact(post.Id.FullId, post);
+					postStore.AddOrUpdate<T>(post.Value.Id.FullId, post.Value);
 				}
 			);
-
-		return Task.CompletedTask;
+	}
+	
+	private void UpdateAllStores() {
+		this.UpdateStore<SayingPayload>();
+		this.UpdateStore<ArtifactPayload>();
 	}
 }

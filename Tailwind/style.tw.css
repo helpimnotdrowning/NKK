@@ -31,10 +31,16 @@
 	--text-xxs: 0.625rem;
 }
 
-html {
-	@apply bg-fixed bg-linear-to-b;
-	@apply from-green-100 to-green-300;
-	@apply font-sans leading-[1.65] text-sm;
+body {
+	@apply
+		bg-linear-to-b bg-fixed
+		from-green-100 to-green-300
+		text-black leading-[1.65]
+		font-sans;
+}
+
+body * {
+	@apply transition-colors duration-100;
 }
 
 hr {
