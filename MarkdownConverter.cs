@@ -11,7 +11,25 @@ public class MarkdownConverter {
 	private readonly MarkdownPipeline _pipeline;
 	private readonly MarkdownOptions _options;
 	private readonly String _source;
+	
 	private const String ErrNotParsed = "Markdown document not parsed. Set md or use Parse(String;)V";
+
+	private static readonly FakeLinkProtocolOptions[] fakeLinkProtocolOptions = [
+		new FakeLinkProtocolOptions {
+			Protocol = "twitter",
+			RewriteCallback = link => {
+				const String origin = "https://twitter.com"; 
+				String rest = link[1..];
+
+				return link[0] switch {
+					'@' => $"{origin}/@{rest}",
+					'#' => $"{origin}/hashtag/{rest}",
+					'!' => $"{origin}/i/status/{rest}",
+					_   => $"{origin}/{link}"
+				};
+			}
+		}
+	];
 
 	private MarkdownDocument Document {
 		get => field ?? throw new NullReferenceException(ErrNotParsed);
@@ -23,6 +41,7 @@ public class MarkdownConverter {
 		this._options = options;
 		this._pipeline = new MarkdownPipelineBuilder()
 			.UseAdvancedExtensions()
+			.UseFakeLinkProtocolExtension(fakeLinkProtocolOptions)
 			.UseLocalLinkFixer(new LocalLinkFixerOptions {
 				Base = this._options.LocalLinkBase
 			})
