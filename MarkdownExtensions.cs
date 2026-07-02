@@ -31,7 +31,23 @@ public class LocalLinkFixerExtension : IMarkdownExtension {
 
 public class FakeLinkProtocolOptions {
 	public required String Protocol { get; init; }
-	public required Func<String, String> RewriteCallback { get; set; }
+	public required String FallbackOrigin { get; init; }
+	public required Func<String, String, String> RewriteCallback {
+		get;
+		init {
+			field = (link, fallbackOrigin) => {
+				// catch-all wrapper so that a bad handler doesn't prevent a page render
+				try {
+					return value(link, fallbackOrigin);
+				} catch (Exception ex) {
+					Console.WriteLine($"Fake link protocol '{this.Protocol}' threw an exception for link '{link}'!");
+					Utils.WriteException(ex);
+
+					return $"{fallbackOrigin}/{link}";
+				}
+			};
+		}
+	}
 }
 
 public class FakeLinkProtocolExtension : IMarkdownExtension {
@@ -49,7 +65,7 @@ public class FakeLinkProtocolExtension : IMarkdownExtension {
 				
 				this.Options.ForEach(proto => {
 					if (link.Url.StartsWith($"{proto.Protocol}:", StringComparison.InvariantCultureIgnoreCase))
-						link.Url = proto.RewriteCallback(link.Url.Substring(proto.Protocol.Length + 1));
+						link.Url = proto.RewriteCallback(link.Url.Substring(proto.Protocol.Length + 1), proto.FallbackOrigin);
 				});
 			});
 	}

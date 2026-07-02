@@ -1,5 +1,6 @@
 using Markdig;
 using Markdig.Syntax;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace NKK;
 
@@ -17,14 +18,39 @@ public class MarkdownConverter {
 	private static readonly FakeLinkProtocolOptions[] fakeLinkProtocolOptions = [
 		new FakeLinkProtocolOptions {
 			Protocol = "twitter",
-			RewriteCallback = link => {
-				const String origin = "https://twitter.com"; 
+			FallbackOrigin = "https://twitter.com",
+			RewriteCallback = (link, origin) => {
+				if (link.Length == 0 || link.Length == 1)
+					return $"{origin}/{link}";
+				
 				String rest = link[1..];
-
 				return link[0] switch {
 					'@' => $"{origin}/@{rest}",
 					'#' => $"{origin}/hashtag/{rest}",
 					'!' => $"{origin}/i/status/{rest}",
+					_   => $"{origin}/{link}"
+				};
+			}
+		},
+		new FakeLinkProtocolOptions {
+			Protocol = "youtube",
+			FallbackOrigin = "https://www.youtube.com",
+			RewriteCallback = (link, origin) => {
+				if (link.Length == 0 || link.Length == 1)
+					return origin;
+				
+				if (link[0] == '@')
+					return $"{origin}/@{link[1..]}";
+				
+				var split = link.Split("=", 2);
+				if (split.Length != 2)
+					return $"{origin}/{link}";
+
+				String rest = split[1];
+				return split[0] switch {
+					"v" => $"{origin}/watch?v={rest}",
+					"playlist" => $"{origin}/@{rest}",
+					"search" => $"{origin}/results?search_query={rest}",
 					_   => $"{origin}/{link}"
 				};
 			}
