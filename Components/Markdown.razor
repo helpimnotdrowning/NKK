@@ -42,9 +42,8 @@
 	public Dictionary<String, Object>? ExtraAttributes { get; set; }
 
 	private String RenderHtml() {
-		if (ChildContent != null && Content != null && File != null) {
+		if (ChildContent != null && Content != null && File != null)
 			throw new ArgumentException("Only one of Content, File, or ChildContent can be set.");
-		}
 		
 		if (File != null) {
 			using StreamReader reader = new StreamReader(File.FullName, Encoding.UTF8);
@@ -53,17 +52,10 @@
 			Content = ChildContent.RenderString();
 		}
 		
-		var md = new MarkdownConverter(Content ?? String.Empty);
-
-		// fix relative links to be absolute at page base
-		// browser interprets relative links with base at /, not current page
-		md.Document.Descendants()
-			.OfType<LinkInline>()
-			.ForEach(link => {
-				if (link.Url != null && !Utils.IsAbsoluteUrl(link.Url))
-					link.Url = Path.Combine(HttpContextAccessor.HttpContext!.Request.Path, link.Url); 
-			});
-
+		var md = new MarkdownConverter(Content ?? String.Empty, new MarkdownOptions {
+			LocalLinkBase = HttpContextAccessor.HttpContext!.Request.Path
+		});
+		
 		return md.ToHtml();
 	}
 }
