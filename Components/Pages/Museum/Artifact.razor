@@ -27,12 +27,12 @@
 
 @code {
 	[Parameter]
-	public required String TitleId { get; set; }
+	public required String FullId { get; set; }
 
 	public required ArtifactPayload? ArtifactData;
 	
 	protected override Task OnInitializedAsync() {
-		ArtifactData = PostStore.Get<ArtifactPayload>(TitleId);
+		ArtifactData = PostStore.Get<ArtifactPayload>(FullId);
 		
 		if (ArtifactData == null) {
 			HttpContextAccessor.HttpContext!.Response.StatusCode = StatusCodes.Status404NotFound;

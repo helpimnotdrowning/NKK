@@ -27,12 +27,12 @@
 
 @code {
 	[Parameter]
-	public required String TitleId { get; set; }
+	public required String FullId { get; set; }
 
 	public required SayingPayload? PostData;
 	
 	protected override Task OnInitializedAsync() {
-		PostData = PostStore.Get<SayingPayload>(TitleId);
+		PostData = PostStore.Get<SayingPayload>(FullId);
 
 		if (PostData == null) {
 			HttpContextAccessor.HttpContext!.Response.StatusCode = StatusCodes.Status404NotFound;
