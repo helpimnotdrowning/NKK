@@ -54,7 +54,22 @@ public class MarkdownConverter {
 					_   => $"{origin}/{link}"
 				};
 			}
-		}
+		},
+		new FakeLinkProtocolOptions {
+			Protocol = "github",
+			FallbackOrigin = "https://github.com",
+			RewriteCallback = (link, origin) => $"{origin}/{link}"
+		},
+		new FakeLinkProtocolOptions {
+			Protocol = "nhnd-forgejo",
+			FallbackOrigin = "https://git.helpimnotdrowning.net",
+			RewriteCallback = (link, origin) => $"{origin}/helpimnotdrowning/{link}"
+		},
+		new FakeLinkProtocolOptions {
+			Protocol = "tangled",
+			FallbackOrigin = "https://tangled.org",
+			RewriteCallback = (link, origin) => $"{origin}/{link}"
+		},
 	];
 
 	private MarkdownDocument Document {
