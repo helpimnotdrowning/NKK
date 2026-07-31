@@ -51,7 +51,8 @@ public static class Utils {
 	public enum ReadPostReason {
 		NoPost,
 		PayloadDeserialize,
-		InvalidNumericId
+		InvalidNumericId,
+		Unknown,
 	}
 	
 	public class ReadPostError(ReadPostReason NKK_Reason, String message) : FluentResults.IError {
@@ -59,62 +60,112 @@ public static class Utils {
 		public String Message { get; }
 		public Dictionary<String, Object> Metadata { get; }
 		public List<IError> Reasons { get; }
+		public ReadPostReason NKK_Reason { get; } = NKK_Reason;
+		public String Message { get; } = message;
+		public Dictionary<String, Object> Metadata { get; } = new Dictionary<String, Object>();
+		public List<IError> Reasons { get; } = [];
+	}
+
+	public struct PostData {
+		public String JsonString { get; init; }
+		public String MarkdownContent { get; init; }
+	}
+	
+	public static Result<PostData> GetPostData<T>(DirectoryInfo postDirectory) where T : IPostPayload {
+		String postNameForErr = $"{postDirectory.Parent?.Name}/{postDirectory.Name}";
+		
+		StreamReader reader;
+		try {
+			reader = new StreamReader(Path.Combine(postDirectory.FullName, T.PostFile), Encoding.UTF8);
+		} catch (Exception e) {
+			return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize, 
+				$"Failed to read post file for '{postNameForErr}': {e.Message}"));
+		}
+
+		String[] rawContent = reader.ReadToEnd().Split("%---", 2);
+		if (rawContent.Length != 2)
+			return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
+				$"Failed to split post '{postNameForErr}'"));
+		
+		return new PostData {
+			JsonString = rawContent[0],
+			MarkdownContent = rawContent[1]
+		};
 	}
 	
 	public static Result<T> ReadPost<T>(DirectoryInfo postDirectory) where T : class, IPostPayload, new() {
-		FileInfo? postFile = postDirectory.EnumerateFiles().SingleOrDefault(f => f != null && f.Name == T.PostFile, null);
-		if (postFile == null)
-			return Result.Fail(new ReadPostError(ReadPostReason.NoPost, $"Directory {postDirectory.FullName} has no {T.PathFragment} file"));
-		
-		using StreamReader reader = new StreamReader(postFile.FullName, Encoding.UTF8);
-		String[] rawContent = reader.ReadToEnd().Split("%---", 2);
-		String[] ids = postDirectory.Name.Split('-',2);
+		String postNameForErr = $"{postDirectory.Parent?.Name}/{postDirectory.Name}";
 
-		dynamic? payloadJson;
-		
 		try {
-			payloadJson = JsonSerializer.Deserialize(rawContent[0], T.JsonTarget, new JsonSerializerOptions());
-			if (payloadJson == null)
-				return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize, $"Payload for {postDirectory.FullName} was null"));
-		} catch (JsonException e) {
-			return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize, $"Failed to parse payload for {postDirectory.FullName}: {e.Message}"));
-		}
-
-		if (!Int32.TryParse(ids[0], out int numericId))
-			return Result.Fail(new ReadPostError(ReadPostReason.InvalidNumericId, $"Numeric ID for post '{postDirectory.FullName}' could not be parsed"));
-		
-		T payload = new T {
-			PostDirectory = postDirectory,
-			PostFileLastModified = postFile.LastWriteTimeUtc,
-			Id = new PostId {
-				FullId = postDirectory.Name,
-				NumericId = numericId,
-				TitleId = ids[1],
+			// try to find the post file
+			var candidates = postDirectory.EnumerateFiles(T.PostFile).ToList();
+			if (candidates.Count == 0)
+				return Result.Fail(new ReadPostError(ReadPostReason.NoPost,
+					$"Post '{postNameForErr}' has no {T.PostFile} file"));
+			FileInfo postFile = candidates.First();
+			
+			// try to read the post file
+			var postDataResult = GetPostData<T>(postDirectory);
+			if (postDataResult.IsFailed)
+				return Result.Fail(postDataResult.Errors);
+			
+			// try to deserialize the payload
+			dynamic? payloadJson;
+			try {
+				payloadJson = JsonSerializer.Deserialize(postDataResult.Value.JsonString, T.JsonTarget);
+				if (payloadJson == null)
+					return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
+						$"Payload for post '{postNameForErr} was null"));
+			} catch (Exception e) {
+				return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
+					$"Failed to parse payload for post '{postNameForErr}': {e.Message}"));
 			}
-		};
-		
-		payload.LoadJson(payloadJson);
-		
-		return payload;
+
+			var maybeId = PostId.From(postDirectory.Name);
+			if (maybeId.IsFailed)
+				return Result.Fail(maybeId.Errors);
+			
+			T payload = new T {
+				PostDirectory = postDirectory,
+				PostFileLastModified = postFile.LastWriteTimeUtc,
+				Id = maybeId.Value,
+			};
+			
+			payload.LoadJson(payloadJson);
+			
+			return payload;
+		} catch (Exception e) {
+			return Result.Fail(new ReadPostError(ReadPostReason.Unknown, 
+				$"Failed to read post '{postNameForErr}' due to an unknown exception: {e.Message}"));
+		}
 	}
 	
 	public static bool IsAbsoluteUrl(String url) {
 		return Uri.TryCreate(url, UriKind.Absolute, out _);
 	}
 
-	public static void WriteException(Exception? ex) {
-		while (ex != null) {
-			Console.WriteLine($"ERROR: watcher failed! ${ex.GetType()}: ${ex.Message}");
-			Console.WriteLine(ex.StackTrace);
+	public static void WriteException(Exception ex) {
+		Exception? exc = ex;
+		while (exc != null) {
+			Console.WriteLine($"ERROR: watcher failed! ${exc.GetType()}: ${exc.Message}");
+			Console.WriteLine(exc.StackTrace);
 			Console.WriteLine();
-			ex = ex.InnerException;
+			exc = exc.InnerException;
 		}
+	}
+
+	public static Task FailPage(IHttpContextAccessor httpContextAccessor, NavigationManager navigationManager, Func<Task> OnInitializedAsync,
+		int statusCode) {
+		httpContextAccessor.HttpContext!.Response.StatusCode = statusCode;
+		navigationManager.NotFound();
+		return OnInitializedAsync();
 	}
 
 	extension<T>(IEnumerable<T> enumerable) {
 		public T RandomElement() {
-			int index = (new Random()).Next(0, enumerable.Count());
-			return enumerable.ElementAt(index);
+			var list = enumerable.ToList();
+			int index = (new Random()).Next(0, list.Count);
+			return list.ElementAt(index);
 		}
 	}
 
@@ -140,7 +191,7 @@ public static class Utils {
 					}
 				});
 			
-			return builder.ToString() ?? String.Empty;
+			return builder.ToString();
 		}
 	}
 }

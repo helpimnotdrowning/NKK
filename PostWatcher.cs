@@ -25,7 +25,9 @@ public class PostWatcherOptions {
 	public DirectoryInfo? AllPostsRoot { get; set; }
 }
 
-public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> options) : BackgroundService {
+public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOptions<PostWatcherOptions> options) : BackgroundService {
+	// lambda that will be called by UpdateStore_EventWrapper
+	// this should never be called by anyone else!!
 	private Action _debouncedUpdate;
 	
 	// TODO: seems to stop watching on exception? i think???
@@ -43,7 +45,7 @@ public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> optio
 			IncludeSubdirectories = true,
 			EnableRaisingEvents = true,
 		};
-
+		
 		this._debouncedUpdate = Debouncer.Debounce(
 			(Action)this.UpdateAllStores, TimeSpan.FromSeconds(5), leading: true, trailing: false
 		).Invoke;
@@ -53,7 +55,8 @@ public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> optio
 		watcher.Deleted += this.UpdateStore_EventWrapper;
 		watcher.Renamed += this.UpdateStore_EventWrapper;
 		watcher.Error += (sender, e) => {
-			Utils.WriteException(e.GetException());
+			// Utils.WriteException(e.GetException());
+			logger.LogError(e.GetException(), "PostWatcher got an error!");
 		};
 		
 		return Task.CompletedTask;
@@ -61,9 +64,10 @@ public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> optio
 
 	private void UpdateStore_EventWrapper(Object sender, FileSystemEventArgs e) {
 		if (e is RenamedEventArgs re) {
-			Console.WriteLine($"{DateTime.Now}: Got FileSystemEvent: File '{re.OldName}' experienced {re.ChangeType} (to '{re.Name}')");			
+			logger.LogInformation(
+				$"{DateTime.Now}: Got FileSystemEvent: File '{re.OldName}' experienced {re.ChangeType} (to '{re.Name}')");
 		} else {
-			Console.WriteLine($"{DateTime.Now}: Got FileSystemEvent: File '{e.Name}' experienced {e.ChangeType}");	
+			logger.LogInformation($"{DateTime.Now}: Got FileSystemEvent: File '{e.Name}' experienced {e.ChangeType}");
 		}
 		
 		this._debouncedUpdate();
@@ -78,26 +82,27 @@ public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> optio
 		posts.ForEach(post => {
 			var newPost = Utils.ReadPost<T>(post.PostDirectory);
 			if (newPost.IsFailed) {
-				postStore.Remove<T>(post.Id.FullId);
+				postStore.Remove<T>(post.Id);
 				return;
 			}
 			
-			if (post.PostFileLastModified == newPost.Value.PostFileLastModified) return;
+			if (post.PostFileLastModified == newPost.Value.PostFileLastModified)
+				return;
 			
 			// please do not change post IDs while live...
-			postStore.AddOrUpdate<T>(post.Id.FullId, newPost.Value);
+			postStore.AddOrUpdate<T>(post.Id, newPost.Value);
 			addedPosts.Add(post.PostDirectory.FullName);
 		});
 
 		new DirectoryInfo(Path.Combine(options.Value.AllPostsRoot!.FullName, T.PathFragment)).EnumerateDirectories()
 			.Where(d => !addedPosts.Contains(d.FullName))
-			.ForEach(d => {
-					var post = Utils.ReadPost<T>(d);
-					if (post.IsFailed) return;
+			.Select(Utils.ReadPost<T>)
+			.ForEach(res => {
+				if (res.IsFailed)
+					return;
 				
-					postStore.AddOrUpdate<T>(post.Value.Id.FullId, post.Value);
-				}
-			);
+				postStore.AddOrUpdate<T>(res.Value.Id, res.Value); 
+			});
 	}
 	
 	private void UpdateAllStores() {

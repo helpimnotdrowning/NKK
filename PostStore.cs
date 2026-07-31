@@ -29,18 +29,25 @@ public class PostStore {
 		return this._posts[typeof(T)].Values.Cast<T>();
 	}
 
-	public T? Get<T>(String id) where T : class, IPostPayload {
-		return this._posts[typeof(T)].TryGetValue(id, out var post) ? (T)post : null;
+	public T? Get<T>(PostId id) where T : class, IPostPayload {
+		if (!this._posts.ContainsKey(typeof(T)))
+			return null;
+		
+		if (!this._posts[typeof(T)].TryGetValue(id.FullId, out var post))
+			return null;
+				
+		return (T)post;
 	}
 
-	public void AddOrUpdate<T>(String id, T post) where T : class, IPostPayload {
+	public void AddOrUpdate<T>(PostId id, T post) where T : class, IPostPayload {
 		if (!this._posts.ContainsKey(typeof(T)))
 			this._posts[typeof(T)] = new ConcurrentDictionary<String, Object>();
 		
-		this._posts[typeof(T)][id] = post;
+		this._posts[typeof(T)][id.FullId] = post;
 	}
 
-	public void Remove<T>(String id) where T : class, IPostPayload {
-		this._posts[typeof(T)].Remove(id, out _);
+	public void Remove<T>(PostId id) where T : class, IPostPayload {
+		if (this._posts.ContainsKey(typeof(T)))
+			this._posts[typeof(T)].Remove(id.FullId, out _);
 	}
 }

@@ -15,8 +15,10 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System.Text;
 using System.Text.RegularExpressions;
+using FluentResults;
+
+using static NKK.Utils;
 
 namespace NKK;
 
@@ -25,6 +27,23 @@ public class PostId : IComparable {
 	public required int NumericId;
 	public required String TitleId;
 
+	public static Result<PostId> From(String fullId) {
+		String[] ids = fullId.Split('-', 2);
+		if (ids.Length != 2)
+			return Result.Fail(new ReadPostError(ReadPostReason.InvalidNumericId,
+				$"ID for post '{fullId}' was malformed"));
+		
+		if (!Int32.TryParse(ids[0], out int numericId))
+			return Result.Fail(new ReadPostError(ReadPostReason.InvalidNumericId,
+				$"ID for post '{fullId}' could not be parsed"));
+
+		return new PostId {
+			FullId = fullId,
+			NumericId = numericId,
+			TitleId = ids[1],
+		};
+	}
+	
 	public Int32 CompareTo(Object? obj) {
 		if (obj == null || obj.GetType() != typeof(PostId)) return 1;
 
@@ -32,7 +51,7 @@ public class PostId : IComparable {
 	}
 }
 
-public interface IPostPayload : IComparable {
+public interface IPostPayload  {
 	public static abstract String PathFragment { get; }
 	public static abstract String PostFile { get; }
 	public static abstract Type JsonTarget { get; }
@@ -74,16 +93,7 @@ public sealed class SayingPayload : IPostPayload {
 	}
 	
 	public String GetMarkdown() {
-		FileInfo postFile = this.PostDirectory.EnumerateFiles().Single(f => f.Name == PostFile );
-		using StreamReader reader = new StreamReader(postFile.FullName, Encoding.UTF8);
-		String[] rawContent = reader.ReadToEnd().Split("%---", 2);
-		return rawContent[1];
-	}
-	
-	public Int32 CompareTo(Object? obj) {
-		if (obj == null || obj.GetType() != typeof(ArtifactPayload)) return 1;
-
-		return this.Id.NumericId.CompareTo( ((IPostPayload)obj).Id.NumericId );
+		return Utils.GetPostData<SayingPayload>(this.PostDirectory).Value.MarkdownContent;
 	}
 }
 
@@ -163,15 +173,6 @@ public sealed class ArtifactPayload : IPostPayload {
 	}
 	
 	public String GetMarkdown() {
-		FileInfo postFile = this.PostDirectory.EnumerateFiles().Single(f => f.Name == PostFile );
-		using StreamReader reader = new StreamReader(postFile.FullName, Encoding.UTF8);
-		String[] rawContent = reader.ReadToEnd().Split("%---", 2);
-		return rawContent[1];
-	}
-
-	public Int32 CompareTo(Object? obj) {
-		if (obj == null || obj.GetType() != typeof(ArtifactPayload)) return 1;
-
-		return this.Id.NumericId.CompareTo( ((IPostPayload)obj).Id.NumericId );
+		return Utils.GetPostData<ArtifactPayload>(this.PostDirectory).Value.MarkdownContent;
 	}
 }

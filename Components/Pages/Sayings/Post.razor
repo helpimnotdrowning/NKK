@@ -32,12 +32,13 @@
 	public required SayingPayload? PostData;
 	
 	protected override Task OnInitializedAsync() {
-		PostData = PostStore.Get<SayingPayload>(FullId);
-
-		if (PostData == null) {
-			HttpContextAccessor.HttpContext!.Response.StatusCode = StatusCodes.Status404NotFound;
-			NavigationManager.NotFound();
-		}
+		var id = PostId.From(FullId);
+		if (id.IsFailed)
+			return Utils.FailPage(HttpContextAccessor, NavigationManager, base.OnInitializedAsync, StatusCodes.Status404NotFound);
+		
+		PostData = PostStore.Get<SayingPayload>(id.Value);
+		if (PostData == null)
+			return Utils.FailPage(HttpContextAccessor, NavigationManager, base.OnInitializedAsync, StatusCodes.Status404NotFound);
 		
 		return base.OnInitializedAsync();
 	}

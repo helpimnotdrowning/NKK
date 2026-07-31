@@ -32,12 +32,13 @@
 	public required ArtifactPayload? ArtifactData;
 	
 	protected override Task OnInitializedAsync() {
-		ArtifactData = PostStore.Get<ArtifactPayload>(FullId);
+		var id = PostId.From(FullId);
+		if (id.IsFailed)
+			return Utils.FailPage(HttpContextAccessor, NavigationManager, base.OnInitializedAsync, StatusCodes.Status404NotFound);
 		
-		if (ArtifactData == null) {
-			HttpContextAccessor.HttpContext!.Response.StatusCode = StatusCodes.Status404NotFound;
-			NavigationManager.NotFound();
-		}
+		ArtifactData = PostStore.Get<ArtifactPayload>(id.Value);
+		if (ArtifactData == null)
+			return Utils.FailPage(HttpContextAccessor, NavigationManager, base.OnInitializedAsync, StatusCodes.Status404NotFound);
 		
 		return base.OnInitializedAsync();
 	}

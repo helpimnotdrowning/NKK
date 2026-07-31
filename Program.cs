@@ -31,6 +31,9 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions() {
 	WebRootPath = "public"
 });
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 // Add services to the container.
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddRazorComponents();
