@@ -18,12 +18,12 @@
 @import "tailwindcss" source(none);
 @import "./00.typography.tw.css";
 @import "./01.prismjs.tw.css";
-@import "../public/font/IBMPlexMono-Regular/IBMPlexMono-Regular.css";
-@import "../public/font/IBMPlexSansJP-Regular/IBMPlexSansJP-Regular.css";
-@import "../public/font/IBMPlexSansJP-Bold/IBMPlexSansJP-Bold.css";
+@import "../../public/font/IBMPlexMono-Regular/IBMPlexMono-Regular.css";
+@import "../../public/font/IBMPlexSansJP-Regular/IBMPlexSansJP-Regular.css";
+@import "../../public/font/IBMPlexSansJP-Bold/IBMPlexSansJP-Bold.css";
 
-@source "../**/*.{razor,cs,html,css,md}";
-@source not "../public";
+@source "../../**/*.{razor,cs,html,css,md}";
+@source not "../../public";
 
 @theme {
 	--font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';

@@ -8,7 +8,7 @@
 
         <TailwindVersion>v4.1.18</TailwindVersion>
         <TailwindWatch>true</TailwindWatch>
-        <TailwindInputCssFile>Tailwind/style.tw.css</TailwindInputCssFile>
+        <TailwindInputCssFile>src/Tailwind/style.tw.css</TailwindInputCssFile>
         <TailwindOutputCssFile>public/style.css</TailwindOutputCssFile>
         <TailwindMinifyOnPublish>false</TailwindMinifyOnPublish>
     </PropertyGroup>
@@ -18,7 +18,7 @@
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="Tailwind\style.tw.css" />
+        <Content Include="src/Tailwind/style.tw.css" />
     </ItemGroup>
     
     <Target Name="UsePublicNotWwwroot" AfterTargets="Publish">
