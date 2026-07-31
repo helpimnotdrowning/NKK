@@ -67,7 +67,7 @@ public class FakeLinkProtocolOptions {
 				} catch (Exception ex) {
 					Console.WriteLine($"Fake link protocol '{this.Protocol}' threw an exception for link '{link}'!");
 					Utils.WriteException(ex);
-
+					
 					return $"{fallbackOrigin}/{link}";
 				}
 			};
@@ -105,16 +105,37 @@ public static class MarkdownPipelineExtensions {
 			return pipeline;
 		}
 		
+		/// <summary>
+		///		Add a <see cref="FakeLinkProtocolExtension"/> step to the pipeline.
+		/// </summary>
+		/// <param name="options">
+		///		List of <see cref="FakeLinkProtocolOptions"/>' that will be successively
+		///		applied to all <see cref="LinkInline"/>s in the Markdown document.
+		///		Duplicates, two <see cref="FakeLinkProtocolOptions"/> with the same
+		///		<see cref="FakeLinkProtocolOptions.Protocol"/>, will be logged and
+		///		ignored.
+		/// </param>
+		/// <exception cref="NotSupportedException">
+		///		Upon first invocation of this method, it *must* be performed before
+		///		<see cref="LocalLinkFixerExtension"/> is added to the pipeline, or it will
+		///		consume and modify the URLs before the 
+		///		<see cref="FakeLinkProtocolExtension"/> can. *After* doing so, this method
+		///		can be called an unlimited number of times.
+		/// </exception>
+		/// <returns>
+		///		<see cref="MarkdownPipelineBuilder"/> for further modification or
+		///		building.
+		/// </returns>
 		public MarkdownPipelineBuilder UseFakeLinkProtocolExtension(FakeLinkProtocolOptions[] options) {
 			pipeline.Extensions.TryFind(out FakeLinkProtocolExtension? ext);
 			
 			if (pipeline.Extensions.Contains<LocalLinkFixerExtension>() && ext != null)
 				throw new NotSupportedException("Applying the FakeLinkProtocolExtension for the first time must be done before the LocalLinkFixerExtension is added (subsequent calls are fine)");
-
+			
 			// add new options if not duplicate
 			if (ext != null) {
 				var originalProtos = ext.Options.Select(op => op.Protocol).ToList();
-
+				
 				options.ForEach(newProto => {
 					if (originalProtos.Contains(newProto.Protocol)) {
 						Console.WriteLine($"Tried to add duplicate fake protocol {newProto.Protocol}, ignoring");

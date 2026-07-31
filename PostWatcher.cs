@@ -33,7 +33,7 @@ public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOpti
 	// TODO: seems to stop watching on exception? i think???
 	protected override Task ExecuteAsync(CancellationToken stoppingToken) {
 		this.UpdateAllStores();
-
+		
 		var watcher = new FileSystemWatcher(options.Value.AllPostsRoot!.FullName) {
 			NotifyFilter = NotifyFilters.Attributes
 				| NotifyFilters.CreationTime
@@ -62,10 +62,19 @@ public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOpti
 		return Task.CompletedTask;
 	}
 
+	/// <summary>
+	///		Small wrapper for debounced UpdateStore call for debug logging and maybe other
+	///		things
+	/// </summary>
+	/// <param name="sender">
+	///		see <see cref="FileSystemEventHandler"/>
+	/// </param>
+	/// <param name="e">
+	///		see <see cref="FileSystemEventHandler"/>
+	/// </param>
 	private void UpdateStore_EventWrapper(Object sender, FileSystemEventArgs e) {
 		if (e is RenamedEventArgs re) {
-			logger.LogInformation(
-				$"{DateTime.Now}: Got FileSystemEvent: File '{re.OldName}' experienced {re.ChangeType} (to '{re.Name}')");
+			logger.LogInformation($"{DateTime.Now}: Got FileSystemEvent: File '{re.OldName}' experienced {re.ChangeType} (to '{re.Name}')");
 		} else {
 			logger.LogInformation($"{DateTime.Now}: Got FileSystemEvent: File '{e.Name}' experienced {e.ChangeType}");
 		}
@@ -73,6 +82,12 @@ public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOpti
 		this._debouncedUpdate();
 	}
 
+	/// <summary>
+	///		Scan and update store for corresponding T
+	/// </summary>
+	/// <typeparam name="T">
+	///		Implementor of <see cref="IPostPayload"/>
+	/// </typeparam>
 	private void UpdateStore<T>() where T : class, IPostPayload, new() {
 		// Now That's What I Call Type Safety!
 		
@@ -93,7 +108,7 @@ public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOpti
 			postStore.AddOrUpdate<T>(post.Id, newPost.Value);
 			addedPosts.Add(post.PostDirectory.FullName);
 		});
-
+		
 		new DirectoryInfo(Path.Combine(options.Value.AllPostsRoot!.FullName, T.PathFragment)).EnumerateDirectories()
 			.Where(d => !addedPosts.Contains(d.FullName))
 			.Select(Utils.ReadPost<T>)

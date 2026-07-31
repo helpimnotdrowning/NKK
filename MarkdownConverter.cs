@@ -14,7 +14,7 @@ public class MarkdownConverter {
 	private readonly String _source;
 	
 	private const String ErrNotParsed = "Markdown document not parsed. Set md or use Parse(String;)V";
-
+	
 	private static readonly FakeLinkProtocolOptions[] fakeLinkProtocolOptions = [
 		new FakeLinkProtocolOptions {
 			Protocol = "twitter",
@@ -45,7 +45,7 @@ public class MarkdownConverter {
 				var split = link.Split("=", 2);
 				if (split.Length != 2)
 					return $"{origin}/{link}";
-
+				
 				String rest = split[1];
 				return split[0] switch {
 					"v" => $"{origin}/watch?v={rest}",
@@ -71,7 +71,7 @@ public class MarkdownConverter {
 			RewriteCallback = (link, origin) => $"{origin}/{link}"
 		},
 	];
-
+	
 	private MarkdownDocument Document {
 		get => field ?? throw new NullReferenceException(ErrNotParsed);
 		set => field = value ?? throw new NullReferenceException(ErrNotParsed);
@@ -89,7 +89,7 @@ public class MarkdownConverter {
 			.Build();
 		this.Document = Markdown.Parse(markdownString, this._pipeline);
 	}
-
+	
 	public String ToHtml() {
 		return this.Document.ToHtml(this._pipeline);
 	}

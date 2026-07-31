@@ -80,24 +80,24 @@ app.Use(async (context, next) => {
 	Stream responseStream = context.Response.Body;
 	using var memoryStream = new MemoryStream();
 	context.Response.Body = memoryStream;
-
+	
 	// let downstream render the response & write to our stream
 	await next(context);
-
+	
 	if (context.Response.ContentType?.StartsWith("text/html") != true) {
 		// oops my bad gangalang
 		// ok now put it back
 		memoryStream.Position = 0;
 		await memoryStream.CopyToAsync(responseStream);
 		context.Response.Body = responseStream;
-
+		
 		return;
 	}
 	
 	memoryStream.Position = 0;
 	String html = await new StreamReader(memoryStream).ReadToEndAsync();
 	String minified = Utils.OptimizeHtml(html);
-
+	
 	context.Response.ContentLength = Encoding.UTF8.GetByteCount(minified);
 	await responseStream.WriteAsync(Encoding.UTF8.GetBytes(minified));
 	context.Response.Body = responseStream;

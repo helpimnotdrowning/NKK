@@ -47,30 +47,46 @@ public static class Utils {
 	public static String OptimizeHtml(String html) {
 		return Uglify.Html(html, HtmlSettings).Code ?? String.Empty;
 	}
-
+	
 	public enum ReadPostReason {
+		/// <summary>
+		///		Used when the post file is missing
+		/// </summary>
 		NoPost,
+		/// <summary>
+		///		Used when the postfile payload cannot be deserialized
+		/// </summary>
 		PayloadDeserialize,
+		/// <summary>
+		///		Used when numeric portion of ID is invalid
+		///		TODO: handle invalid TitleID
+		/// </summary>
 		InvalidNumericId,
+		/// <summary>
+		///		Used for unhandled exceptions in parsing
+		/// </summary>
 		Unknown,
 	}
 	
 	public class ReadPostError(ReadPostReason NKK_Reason, String message) : FluentResults.IError {
-		public ReadPostReason NKK_Reason { get; }
-		public String Message { get; }
-		public Dictionary<String, Object> Metadata { get; }
-		public List<IError> Reasons { get; }
 		public ReadPostReason NKK_Reason { get; } = NKK_Reason;
 		public String Message { get; } = message;
 		public Dictionary<String, Object> Metadata { get; } = new Dictionary<String, Object>();
 		public List<IError> Reasons { get; } = [];
 	}
-
+	
 	public struct PostData {
 		public String JsonString { get; init; }
 		public String MarkdownContent { get; init; }
 	}
 	
+	/// <summary>
+	///		Read post data (JSON and Markdown) for a given post directory
+	/// </summary>
+	/// <param name="postDirectory">
+	///		
+	/// </param>
+	/// <returns></returns>
 	public static Result<PostData> GetPostData<T>(DirectoryInfo postDirectory) where T : IPostPayload {
 		String postNameForErr = $"{postDirectory.Parent?.Name}/{postDirectory.Name}";
 		
@@ -81,7 +97,7 @@ public static class Utils {
 			return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize, 
 				$"Failed to read post file for '{postNameForErr}': {e.Message}"));
 		}
-
+		
 		String[] rawContent = reader.ReadToEnd().Split("%---", 2);
 		if (rawContent.Length != 2)
 			return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
@@ -93,9 +109,28 @@ public static class Utils {
 		};
 	}
 	
+	/// <summary>
+	///		Try to read a post at <paramref name="postDirectory"/>
+	/// </summary>
+	/// <param name="postDirectory">
+	///		A directory with a well-formed name (NumericId-TitleId) that contains a file
+	///		named <see cref="T.PostFile"/>, properly formatted with a JSON payload block,
+	///		separator <c>%---</c>, and Markdown content.
+	/// </param>
+	/// <typeparam name="T">
+	///		Concrete implementor of <see cref="IPostPayload"/>. <see cref="T.JsonTarget">
+	///		T's JsonTarget</see> must represent every object in the payload.
+	/// </typeparam>
+	/// <returns>
+	///		A <see cref="Result"/>, where all possible errors are
+	///		<see cref="ReadPostError"/>s, broadly described by the
+	///		<see cref="ReadPostError.NKK_Reason"/> and possibly (but not always) further
+	///		described by the <see cref="ReadPostError.Message"/> (Messages are subject to
+	///		change).
+	/// </returns>
 	public static Result<T> ReadPost<T>(DirectoryInfo postDirectory) where T : class, IPostPayload, new() {
 		String postNameForErr = $"{postDirectory.Parent?.Name}/{postDirectory.Name}";
-
+		
 		try {
 			// try to find the post file
 			var candidates = postDirectory.EnumerateFiles(T.PostFile).ToList();
@@ -120,7 +155,7 @@ public static class Utils {
 				return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
 					$"Failed to parse payload for post '{postNameForErr}': {e.Message}"));
 			}
-
+			
 			var maybeId = PostId.From(postDirectory.Name);
 			if (maybeId.IsFailed)
 				return Result.Fail(maybeId.Errors);
@@ -153,7 +188,25 @@ public static class Utils {
 			exc = exc.InnerException;
 		}
 	}
-
+	
+	/// <summary>
+	///		Shortcut to call the error page
+	/// </summary>
+	/// <param name="httpContextAccessor">
+	///		<c>@inject IHttpContextAccessor HttpContextAccessor</c>
+	/// </param>
+	/// <param name="navigationManager">
+	///		<c>@inject NavigationManager NavigationManager</c>
+	/// </param>
+	/// <param name="OnInitializedAsync">
+	///		<c>base.OnInitializedAsync</c>
+	/// </param>
+	/// <param name="statusCode">
+	///		Integer where 400 &lt;= statusCode &lt;= 599
+	/// </param>
+	/// <returns>
+	///		Task, not sure what it actually represents but just it
+	/// </returns>
 	public static Task FailPage(IHttpContextAccessor httpContextAccessor, NavigationManager navigationManager, Func<Task> OnInitializedAsync,
 		int statusCode) {
 		httpContextAccessor.HttpContext!.Response.StatusCode = statusCode;
