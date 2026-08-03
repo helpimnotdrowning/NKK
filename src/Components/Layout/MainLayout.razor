@@ -16,51 +16,8 @@
 *@
 
 @inherits LayoutComponentBase
-@inject IHttpContextAccessor Context
+@layout MainLayoutBase
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	
-	<link rel="stylesheet" type="text/css" href="@Assets["/style.css"]" />
-	
-	<script src="@Assets["/htmx.js"]"></script>
-	<meta name="htmx-config" content='{"scrollIntoViewOnBoost":false}' />
-	
-	<meta name="darkreader-lock" />
-	
-	<HeadOutlet />
-	@* blank placeholder title, overriden (usually) in @Body *@
-	<AppTitle></AppTitle>
-</head>
-@if (_hasError) {
-	<body class="from-red-400! to-red-500!">
-		@Body
-	</body>
-} else {
-	<body>
-		<Header />
-
-		@* maybe also stuff this in <Header> *@
-		<NavMenu />
-
-		<div class="n-box">
-			@Body
-		</div>
-	</body>
-}
-</html>
-
-@code {
-
-	private bool _hasError;
-
-	protected override Task OnInitializedAsync() {
-		_hasError = Context.HttpContext!.Response.StatusCode >= 400;
-		
-		return base.OnInitializedAsync();
-	}
-
-}
+<div class="n-box">
+	@Body
+</div>

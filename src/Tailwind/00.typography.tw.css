@@ -41,6 +41,14 @@
 	
 	@apply p-10!;
 	
+	&.no-top-pad {
+		@apply pt-0!;
+	}
+	
+	&.no-bottom-pad {
+		@apply pb-0!;
+	}
+	
 	color: var(--tw-prose-body);
 	
 	/* lg */

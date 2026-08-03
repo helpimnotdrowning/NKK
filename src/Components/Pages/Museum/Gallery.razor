@@ -15,29 +15,34 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 *@
 
-@page "/sayings"
-@inject IWebHostEnvironment Env
-@inject PostStore PostStore
-
-<div class="flex flex-col gap-2">
-	@foreach (var p in Posts) {
-		<div class="post-component" id="saying-@p.Id.FullId">
-			<h2 class="post-title">
-				<a href="/sayings/@p.Id.FullId">@p.Title</a>
-			</h2>
-			<p class="flex gap-2">
-				<span class="post-info-span">@p.Created.ToString("yyyy-MM-dd")</span>
-				@p.Description
-			</p>
+<div class="artifact-gallery">
+	@{ int i = 0; }
+	@foreach (var image in _images) {
+		<div id="artifact-holder-@i" class="artifact-holder">
+			<div class="artifact-cap">
+				<a href="@Artifact.Id.FullId/@image.Name" target="_blank" class="a-normal">@image.Name</a>
+			</div>
+			<div class="artifact-image-rounder">
+				<img class="artifact-image" src="@Artifact.Id.FullId/@image.Name"/>
+			</div>
 		</div>
+		i++;
 	}
 </div>
 
 @code {
-	public required IEnumerable<SayingPayload> Posts;
-	
+	[Parameter]
+	public required ArtifactPayload Artifact { get; set; }
+
+	private IEnumerable<FileInfo> _images;
+
 	protected override Task OnInitializedAsync() {
-		Posts = PostStore.GetAll<SayingPayload>().OrderByDescending(p => p.Id.NumericId);
+		var extensions = new[] { ".gif", ".jpg", ".jpeg", ".png", ".webp" };
+		_images = Artifact.PostDirectory
+			.EnumerateFiles()
+			.Where(f => extensions.Contains(f.Extension))
+			.OrderBy(f => f.Name)
+			.ToList();
 		
 		return base.OnInitializedAsync();
 	}

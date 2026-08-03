@@ -16,9 +16,6 @@
 *@
 
 @using System.Text
-@using Markdig.Syntax
-@using Markdig.Syntax.Inlines
-@using NUglify.Helpers
 @inject IHttpContextAccessor HttpContextAccessor
 
 <div @attributes="ExtraAttributes" class="@( UseTypographyStyle ? "tx" : "" ) @( ExtraAttributes?.GetValueOrDefault("class", "") )">
@@ -45,12 +42,10 @@
 		if (ChildContent != null && Content != null && File != null)
 			throw new ArgumentException("Only one of Content, File, or ChildContent can be set.");
 		
-		if (File != null) {
-			using StreamReader reader = new StreamReader(File.FullName, Encoding.UTF8);
-			Content = reader.ReadToEnd();
-		} else if (ChildContent != null) {
+		if (File != null)
+			Content = new StreamReader(File.FullName, Encoding.UTF8).ReadToEnd();
+		else if (ChildContent != null)
 			Content = ChildContent.RenderString();
-		}
 		
 		var md = new MarkdownConverter(Content ?? String.Empty, new MarkdownOptions {
 			LocalLinkBase = HttpContextAccessor.HttpContext!.Request.Path

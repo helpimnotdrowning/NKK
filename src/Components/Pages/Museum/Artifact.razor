@@ -16,14 +16,29 @@
 *@
 
 @page "/museum/{FullId}"
+@layout MainLayoutNoNBox
 @inject PostStore PostStore
 @inject IHttpContextAccessor HttpContextAccessor
 @inject NavigationManager NavigationManager
 
 <AppTitle>@ArtifactData.Title</AppTitle>
-<UsePrism />
 
-<Markdown Content="@ArtifactData.GetMarkdown()" hx-disable></Markdown>
+<figure class="n-box">
+	<Gallery Artifact="@ArtifactData" />
+</figure>
+
+<figcaption id="artifact-text" class="n-box">
+	<div class="tx">
+		<h1>@ArtifactData.Title</h1>
+		<span class="post-info-span">
+			Published @ArtifactData.Created.ToString("yyyy-MM-dd")
+			&mdash;
+			@* Tags: @( $"\"{ String.Join("\", \"", ArtifactData.Tags) }\"" ) *@
+		</span>
+	</div>
+	<Markdown Content="@ArtifactData.GetMarkdown()" class="no-top-pad" hx-disable/>
+</figcaption>
+
 
 @code {
 	[Parameter]

@@ -17,11 +17,13 @@
 
 using System.IO.Compression;
 using System.Text;
-using NKK.Components;
+
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
+
 using NKK;
+using NKK.Components;
 
 String allPostsRoot = Environment.GetEnvironmentVariable("ALL_POSTS_ROOT") ??
 	throw new ArgumentException("env:ALL_POSTS_ROOT is unset!");
@@ -57,6 +59,7 @@ builder.Services.Configure<PostWatcherOptions>(opts => {
 		throw new ArgumentException("env:ALL_POSTS_ROOT is unset!"));
 });
 builder.Services.AddHostedService<PostWatcher>();
+builder.Services.AddScoped<HeadAccumulator>();
 
 var app = builder.Build();
 

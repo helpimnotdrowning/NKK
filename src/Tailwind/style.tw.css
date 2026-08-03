@@ -31,10 +31,14 @@
 	--text-xxs: 0.625rem;
 }
 
+@utility nhnd-bg-gradient {
+	@apply bg-linear-to-b bg-fixed
+	from-green-100 to-green-300
+}
+
 body {
 	@apply
-		bg-linear-to-b bg-fixed
-		from-green-100 to-green-300
+		nhnd-bg-gradient
 		text-black leading-[1.65]
 		font-sans;
 }
@@ -49,9 +53,11 @@ hr {
 }
 
 a:not(.clickable) {
-	&:hover {
-		/* like https://phk.freebsd.dk/ */
-		@apply bg-blue-400/15 rounded-xs;
+	&:not(.a-normal) {
+		&:hover {
+			/* like https://phk.freebsd.dk/ */
+			@apply bg-blue-400/15 rounded-xs;
+		}
 	}
 	
 	@apply
@@ -76,7 +82,7 @@ a:visited {
 }
 
 .n-box {
-	@apply w-[min(67%,_var(--container-6xl))];
+	@apply w-[min(72%,_var(--container-6xl))];
 	@apply border border-black border-solid;
 	@apply flex flex-col mt-8 mb-20 p-4 rounded-sm drop-shadow-xl;
 	@apply bg-[#ffffff];
@@ -92,6 +98,10 @@ a:visited {
 	@apply border-transparent;
 	@apply bg-transparent;
 	@apply drop-shadow-none;
+}
+
+.but-wider {
+	@apply w-[min(75%,_var(--container-7xl))]!;
 }
 
 .clickable {
@@ -149,6 +159,10 @@ a:visited {
 	}
 }
 
+.post-info-span {
+	@apply text-current/50;
+}
+
 .post-component {
 	@apply m-2;
 	h1 a {
@@ -158,23 +172,29 @@ a:visited {
 	}
 }
 
-.artifact-holder {
-	display: grid;
-	gap: 10px;
-	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-	grid-template-rows: masonry;
+.artifact-gallery {
+	@apply gap-4 flex flex-col;
 }
 
-.artifact-component {
-	/* @apply m-2 grid; */
-	
-	width: 50%;
-	
-	h1 a {
-		font-size: 1.5em;
-		font-weight: 800;
-		text-decoration: none !important;
-	}
+.artifact-holder {
+	filter: drop-shadow(0 0 0.2rem #0000007f);
+}
+
+@utility x-test {
+	@apply p-1 nhnd-bg-gradient;
+}
+
+.artifact-cap {
+	@apply w-fit w-fit rounded-tl-md rounded-tr-md px-1.5 x-test;
+}
+
+.artifact-image-rounder {
+	@apply rounded-tr-lg rounded-bl-lg rounded-br-lg x-test;
+}
+
+.artifact-image {
+	width: 100%;
+	@apply rounded-lg;
 }
 
 @keyframes splashscale {

@@ -1,4 +1,4 @@
-﻿@*
+/*
 	This file is part of NKK.
 
 	NKK is free software: you can redistribute it and/or modify it under the
@@ -13,25 +13,15 @@
 
 	You should have received a copy of the GNU Affero General Public License
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
-*@
+*/
 
-<nav class="n-box mt-2! w-full">
-<nav class="n-box but-wider mt-2! w-full sticky top-4 z-99">
-	<div>
-		@* maybe make this a list... *@
-		<div class="float-left flex gap-4">
-			<a href="/">Home</a>
-			<a href="/sayings">Posts</a>
-			<a href="/museum">Museum</a>
-		</div>
-		<div class="float-right">
-			<a
-				class="text-blue-600 underline"
-				href="https://git.helpimnotdrowning.net/helpimnotdrowning/NKK"
-				target="_blank"
-			>
-				running helpimnotdrowning/NKK
-			</a>
-		</div>
-	</div>
-</nav>
+using Microsoft.AspNetCore.Components;
+
+namespace NKK;
+
+public class HeadAccumulator {
+	private readonly List<RenderFragment> _fragments = [];
+	public IReadOnlyList<RenderFragment> Fragments => this._fragments;
+
+	public void Add(RenderFragment fragment) => this._fragments.Add(fragment);
+}

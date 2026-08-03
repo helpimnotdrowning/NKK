@@ -1,0 +1,67 @@
+﻿@*
+	This file is part of NKK.
+
+	NKK is free software: you can redistribute it and/or modify it under the
+	terms of the GNU Affero General Public License as published by the Free
+	Software Foundation, either version 3 of the License, or (at your option)
+	any later version.
+
+	NKK is distributed in the hope that it will be useful, but WITHOUT ANY
+	WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+	more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with NKK. If not, see <http://www.gnu.org/licenses/>.
+*@
+
+@inherits LayoutComponentBase
+@inject IHttpContextAccessor Context
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	
+	<link rel="stylesheet" type="text/css" href="@Assets["/style.css"]" />
+	
+	<script src="@Assets["/_hyperscript.js"]"></script>
+	<script src="@Assets["/htmx.js"]"></script>
+	<meta name="htmx-config" content='{"scrollIntoViewOnBoost":false}' />
+	
+	<meta name="darkreader-lock" />
+	
+	<HeadOutlet />
+	
+	@* blank placeholder title, overriden (usually) in @Body *@
+	<AppTitle />
+</head>
+@if (_hasError) {
+	<body class="from-red-400! to-red-500!">
+	@Body
+	</body>
+} else {
+	<body>
+	<Header />
+	
+	@* maybe also stuff this in <Header> *@
+	<NavMenu />
+	
+	@Body
+	</body>
+}
+</html>
+<Nhnd_HeadContentFinished />
+
+@code {
+
+	private bool _hasError;
+
+	protected override Task OnInitializedAsync() {
+		_hasError = Context.HttpContext!.Response.StatusCode >= 400;
+		
+		return base.OnInitializedAsync();
+	}
+
+}
