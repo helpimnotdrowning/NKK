@@ -1,0 +1,4 @@
+/* split off to make compiled style.css smaller */
+@import "/font/IBMPlexMono-Regular/IBMPlexMono-Regular.css";
+@import "/font/IBMPlexSansJP-Regular/IBMPlexSansJP-Regular.css";
+@import "/font/IBMPlexSansJP-Bold/IBMPlexSansJP-Bold.css";

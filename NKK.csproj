@@ -4,14 +4,9 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RootNamespace>NKK</RootNamespace>
         <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-
-        <TailwindVersion>v4.3.1</TailwindVersion>
-        <TailwindWatch>true</TailwindWatch>
-        <TailwindInputCssFile>src/Tailwind/style.tw.css</TailwindInputCssFile>
-        <TailwindOutputCssFile>public/style.css</TailwindOutputCssFile>
-        <TailwindMinifyOnPublish>false</TailwindMinifyOnPublish>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <RootNamespace>NKK</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -26,28 +21,45 @@
         <RemoveDir Directories="$(PublishDir)/wwwroot" />
     </Target>
 
-    <!-- this is nixos' fault -->
-    <Target Name="UseSystemTailwindcssIfPresent"
-            AfterTargets="TailwindSetupExecutable"
-            Condition="Exists('/etc/NIXOS')">
-        <Exec Command="which tailwindcss" ConsoleToMsBuild="true">
-            <Output TaskParameter="ConsoleOutput" PropertyName="which_tailwindcss" />
+    <Target Name="BurnBranding" BeforeTargets="GetAssemblyAttributes">
+        <PropertyGroup>
+            <!-- initialize with env bc nix -->
+            <GitCommit>$(GIT_COMMIT)</GitCommit>
+            <GitCommitShort>$(GIT_COMMIT_SHORT)</GitCommitShort>
+        </PropertyGroup>
+
+        <Exec Condition=" '$(GitCommit)' == '' "
+              Command="git rev-parse HEAD" ConsoleToMsBuild="true"
+              StandardOutputImportance="low">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitCommit" />
         </Exec>
-        <Exec Command="rm $(_TailwindExecutablePath)" />
-        <Exec Command="ln -s $(which_tailwindcss) $(_TailwindExecutablePath)" />
+        <Exec Condition=" '$(GitCommitShort)' == '' "
+              Command="git rev-parse --short HEAD" ConsoleToMsBuild="true"
+              StandardOutputImportance="low">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitShort" />
+        </Exec>
+
+        <ItemGroup>
+            <AssemblyMetadata Include="GitCommitShort" Value="$(GitCommitShort)" />
+            <AssemblyMetadata Include="GitCommit" Value="$(GitCommit)" />
+            <AssemblyMetadata Include="GitSourceDisplay" Value="tangled.sh/helpimnotdrowning.net/Utatane" />
+            <AssemblyMetadata Include="GitSourceUrl" Value="https://tangled.sh/helpimnotdrowning.net/Utatane" />
+            <AssemblyMetadata Include="GitSourcePathPreCommit" Value="/tree/" />
+        </ItemGroup>
     </Target>
     
     <ItemGroup>
-      <PackageReference Include="FluentResults" Version="4.0.0" />
-      <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
-      <PackageReference Include="Markdig" Version="1.3.2" />
-      <PackageReference Include="NUglify" Version="1.21.17" />
-      <PackageReference Include="Tailwind.Hosting" Version="1.2.4" />
-      <PackageReference Include="Tailwind.Hosting.Build" Version="1.2.4">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="ThrottleDebounce" Version="2.0.2" />
+        <PackageReference Include="FluentResults" Version="4.0.0" />
+        <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
+        <PackageReference Include="Markdig" Version="1.3.2" />
+        <PackageReference Include="NUglify" Version="1.21.17" />
+        <PackageReference Include="Serilog" Version="4.3.0" />
+        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+        <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
+        <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
+        <PackageReference Include="ThrottleDebounce" Version="2.0.2" />
+        <PackageReference Condition="$(Configuration) != 'Release'"
+                Include="Tailwind.Extensions.AspNetCore" Version="1.1.2" />
     </ItemGroup>
     
     <ItemGroup>

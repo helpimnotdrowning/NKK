@@ -16,6 +16,7 @@
 *@
 
 @page "/museum/{FullId}"
+@using FluentResults
 @layout MainLayoutNoNBox
 @inject PostStore PostStore
 @inject IHttpContextAccessor HttpContextAccessor
@@ -33,28 +34,24 @@
 		<span class="post-info-span">
 			Published @ArtifactData.Created.ToString("yyyy-MM-dd")
 			&mdash;
-			@* Tags: @( $"\"{ String.Join("\", \"", ArtifactData.Tags) }\"" ) *@
+			Tags: "@( String.Join("\", \"", ArtifactData.Tags) )"
 		</span>
 	</div>
 	<Markdown Content="@ArtifactData.GetMarkdown()" class="no-top-pad" hx-disable/>
 </figcaption>
 
-
 @code {
 	[Parameter]
 	public required String FullId { get; set; }
 
-	public required ArtifactPayload? ArtifactData;
+	private Result<PostId> IdBundle => PostId.From(FullId);
+	private ArtifactPayload? ArtifactData => PostStore.Get<ArtifactPayload>(IdBundle.Value);
 	
 	protected override Task OnInitializedAsync() {
 		var id = PostId.From(FullId);
-		if (id.IsFailed)
+		if (id.IsFailed || ArtifactData == null)
 			return Utils.FailPage(HttpContextAccessor, NavigationManager, base.OnInitializedAsync, StatusCodes.Status404NotFound);
-		
-		ArtifactData = PostStore.Get<ArtifactPayload>(id.Value);
-		if (ArtifactData == null)
-			return Utils.FailPage(HttpContextAccessor, NavigationManager, base.OnInitializedAsync, StatusCodes.Status404NotFound);
-		
+
 		return base.OnInitializedAsync();
 	}
 }

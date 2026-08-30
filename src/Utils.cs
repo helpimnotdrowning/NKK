@@ -19,18 +19,20 @@
 
 using System.Text;
 using System.Text.Json;
+
 using FluentResults;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.RenderTree;
-
 using NUglify;
 using NUglify.Html;
+
+using static Microsoft.AspNetCore.WebUtilities.ReasonPhrases;
 
 namespace NKK;
 
 public static class Utils {
-	private static readonly HtmlSettings HtmlSettings = new HtmlSettings() {
+	private static readonly HtmlSettings HtmlSettings = new() {
 		RemoveComments = false,
 		RemoveOptionalTags = false,
 		RemoveInvalidClosingTags = false,
@@ -43,9 +45,33 @@ public static class Utils {
 		MinifyCss = false,
 		MinifyCssAttributes = false,
 	};
-	
+
+	private static readonly HtmlSettings XmlSettings = new() {
+		AttributesCaseSensitive = false,
+		TagsCaseSensitive = true,
+		CollapseWhitespaces = true,
+		RemoveComments = false,
+		RemoveOptionalTags = false,
+		RemoveInvalidClosingTags = false,
+		RemoveEmptyAttributes = false,
+		RemoveAttributeQuotes = false,
+		DecodeEntityCharacters = false,
+		AttributeQuoteChar = '"',
+		RemoveScriptStyleTypeAttribute = false,
+		ShortBooleanAttribute = false,
+		IsFragmentOnly = true,
+		MinifyJs = false,
+		MinifyJsAttributes = false,
+		MinifyCss = false,
+		MinifyCssAttributes = false,
+	};
+
 	public static String OptimizeHtml(String html) {
 		return Uglify.Html(html, HtmlSettings).Code ?? String.Empty;
+	}
+
+	public static String OptimizeXml(String html) {
+		return Uglify.Html(html, XmlSettings).Code ?? String.Empty;
 	}
 	
 	public enum ReadPostReason {
@@ -147,7 +173,11 @@ public static class Utils {
 			// try to deserialize the payload
 			dynamic? payloadJson;
 			try {
-				payloadJson = JsonSerializer.Deserialize(postDataResult.Value.JsonString, T.JsonTarget);
+				payloadJson = JsonSerializer.Deserialize(postDataResult.Value.JsonString, T.JsonTarget, new JsonSerializerOptions {
+					AllowTrailingCommas = true,
+					AllowOutOfOrderMetadataProperties = true,
+					ReadCommentHandling = JsonCommentHandling.Skip,
+				});
 				if (payloadJson == null)
 					return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
 						$"Payload for post '{postNameForErr} was null"));
@@ -173,6 +203,30 @@ public static class Utils {
 			return Result.Fail(new ReadPostError(ReadPostReason.Unknown, 
 				$"Failed to read post '{postNameForErr}' due to an unknown exception: {e.Message}"));
 		}
+	}
+	
+	public static String BRIGHT_RED = "\e[91m";
+	public static String BLACK_ON_RED = "\e[37m\e[41m";
+			
+	public static String FormatStatusCode(int code) {
+		var col = code switch {
+			>= 500 => BLACK_ON_RED,
+			>= 400 => BRIGHT_RED,
+			_ => "",
+		};
+
+		return $"{col}{code} ({GetReasonPhrase(code)})";
+	}
+
+	public static String FormatSize(long size) {
+		double dSize = (double)size;
+		return size switch {
+			>= 1024L * 1024 * 1024 * 1024 => $"{dSize / (1024L * 1024 * 1024 * 1024):F2} TiB",
+			>= 1024  * 1024 * 1024 => $"{dSize / (1024 * 1024 * 1024):F2} GiB",
+			>= 1024  * 1024 => $"{dSize / (1024 * 1024):F2} MiB",
+			>= 1024  => $"{dSize / 1024:F2} KiB",
+			_ => $"{size} B",
+		};
 	}
 	
 	public static bool IsAbsoluteUrl(String url) {

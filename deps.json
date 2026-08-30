@@ -1,0 +1,93 @@
+[
+  {
+    "pname": "FluentResults",
+    "version": "4.0.0",
+    "hash": "sha256-UGmtzWS87HZiLXujQ80LanwKkBVHcsTyZTHBfWpV7rQ="
+  },
+  {
+    "pname": "JetBrains.Annotations",
+    "version": "2026.2.0",
+    "hash": "sha256-409CskrdaICXUplGs9sNplfTJfYElllVwIQwoDWfdmk="
+  },
+  {
+    "pname": "Markdig",
+    "version": "1.3.2",
+    "hash": "sha256-rlIUsV0QBtkdXHsWvJAREQr5XYNQWOGKMOgOKMJ48Zo="
+  },
+  {
+    "pname": "Microsoft.AspNetCore.SpaServices.Extensions",
+    "version": "6.0.1",
+    "hash": "sha256-Nbuvy4y3c53uMnq9N0zdq31x8xRfUmUbpquJ72dPYtQ="
+  },
+  {
+    "pname": "Microsoft.Extensions.DependencyModel",
+    "version": "10.0.0",
+    "hash": "sha256-oCcIjmwH8H0n9bT3wQBWdotMvYuoiazfiKrXAs2bLiI="
+  },
+  {
+    "pname": "NUglify",
+    "version": "1.21.17",
+    "hash": "sha256-TBDyH+iW+Rn7QqpXPVFC3YdQC2Ml2BL1geXgHQ9jCH4="
+  },
+  {
+    "pname": "Serilog",
+    "version": "4.3.0",
+    "hash": "sha256-jyIy4BjsyFXge3aO4GRFAdnX4/rz1MHfBkBDIpCDsTw="
+  },
+  {
+    "pname": "Serilog.AspNetCore",
+    "version": "10.0.0",
+    "hash": "sha256-z7dY6pY2Kkns20mpzZN2GOfV172gDWpamKDXHyLhEJs="
+  },
+  {
+    "pname": "Serilog.Expressions",
+    "version": "5.0.0",
+    "hash": "sha256-xpAT8U0pzTvRGa/qBd2M3YOQDD1xgAHCMVN9NEz0L4E="
+  },
+  {
+    "pname": "Serilog.Extensions.Hosting",
+    "version": "10.0.0",
+    "hash": "sha256-zFQMZkAPqg+j2ZI0oBN07hO+9MFiyy5YECRbz7msxeU="
+  },
+  {
+    "pname": "Serilog.Extensions.Logging",
+    "version": "10.0.0",
+    "hash": "sha256-MgfWK/SJWUPxPzrnCUnxn6Sy+SBVmP3dYd60uy80NdE="
+  },
+  {
+    "pname": "Serilog.Formatting.Compact",
+    "version": "3.0.0",
+    "hash": "sha256-nejEYqJEMG9P2iFZvbsCUPr5LZRtxbdUTLCI9N71jHY="
+  },
+  {
+    "pname": "Serilog.Settings.Configuration",
+    "version": "10.0.0",
+    "hash": "sha256-WJK+wR7XPGAtD+vO+pjF5mn4qy8tO5uWIqHhovL0lAs="
+  },
+  {
+    "pname": "Serilog.Sinks.Console",
+    "version": "6.1.1",
+    "hash": "sha256-CfIg4Us4kSMQAn6rU2rsAeE22g6MpFiZdhoZWySpZeY="
+  },
+  {
+    "pname": "Serilog.Sinks.Debug",
+    "version": "3.0.0",
+    "hash": "sha256-7/LmoRF1rUDFhJ47bTRQQFRgSHnZDO8484r3sCGqYvE="
+  },
+  {
+    "pname": "Serilog.Sinks.File",
+    "version": "7.0.0",
+    "hash": "sha256-LxZYUoUPkCjIIVarJilnXnqQiMrFNJtoRilmzTNtUjo="
+  },
+  {
+    "pname": "Tailwind.Extensions.AspNetCore",
+    "version": "1.1.2",
+    "hash": "sha256-F1mbB1pYbJme+wUDkMgtG8dmXRc0p10n99OHqi4VTBM=",
+    "url": "https://git.helpimnotdrowning.net/api/packages/helpimnotdrowning/nuget/package/tailwind.extensions.aspnetcore/1.1.2/tailwind.extensions.aspnetcore.1.1.2.nupkg"
+  },
+  {
+    "pname": "ThrottleDebounce",
+    "version": "2.0.2",
+    "hash": "sha256-1af44f18klFohH2vL23mbTQqCfDgF31svr4uy4GdJrY="
+  }
+]

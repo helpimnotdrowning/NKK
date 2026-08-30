@@ -24,9 +24,11 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	
+	<link rel="stylesheet" type="text/css" href="@Assets["/fonts.css"]" />
 	<link rel="stylesheet" type="text/css" href="@Assets["/style.css"]" />
 	
-	<script src="@Assets["/_hyperscript.js"]"></script>
+	<script src="@Assets["/moxi.js"]"></script>
+	<script src="@Assets["/jquery.js"]"></script>
 	<script src="@Assets["/htmx.js"]"></script>
 	<meta name="htmx-config" content='{"scrollIntoViewOnBoost":false}' />
 	
@@ -37,7 +39,7 @@
 	@* blank placeholder title, overriden (usually) in @Body *@
 	<AppTitle />
 </head>
-@if (_hasError) {
+@if (HasError) {
 	<body class="from-red-400! to-red-500!">
 	@Body
 	</body>
@@ -55,13 +57,7 @@
 <Nhnd_HeadContentFinished />
 
 @code {
-
-	private bool _hasError;
-
-	protected override Task OnInitializedAsync() {
-		_hasError = Context.HttpContext!.Response.StatusCode >= 400;
-		
-		return base.OnInitializedAsync();
-	}
+	
+	private bool HasError => Context.HttpContext!.Response.StatusCode >= 400;
 
 }

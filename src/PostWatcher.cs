@@ -113,8 +113,11 @@ public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOpti
 			.Where(d => !addedPosts.Contains(d.FullName))
 			.Select(Utils.ReadPost<T>)
 			.ForEach(res => {
-				if (res.IsFailed)
+				if (res.IsFailed) {
+					var err = res.Errors.Cast<Utils.ReadPostError>().First();
+					logger.LogWarning($"Failed to load {typeof(T)}: {err.NKK_Reason}: {err.Message}");
 					return;
+				}
 				
 				postStore.AddOrUpdate<T>(res.Value.Id, res.Value); 
 			});

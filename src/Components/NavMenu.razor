@@ -15,8 +15,8 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 *@
 
-<nav class="n-box mt-2! w-full">
-<nav class="n-box but-wider mt-2! w-full sticky top-4 z-99">
+<div id="nav-sticky-check" class="h-0 w-full" />
+<nav class="n-box mt-2! w-full sticky top-4 z-99" on-init="@_nav__on_init">
 	<div>
 		@* maybe make this a list... *@
 		<div class="float-left flex gap-4">
@@ -35,3 +35,18 @@
 		</div>
 	</div>
 </nav>
+
+@code {
+
+	private readonly String _nav__on_init = @"
+	var check = $('#nav-sticky-check');
+	var nav = $(this)
+
+	const ob = new IntersectionObserver(entries => entries.forEach(entry =>
+		nav.toggleClass('but-wider', !entry.isIntersecting)
+	), { threshold: [0] });
+
+	ob.observe( check[0] );
+";
+
+}

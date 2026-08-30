@@ -17,7 +17,7 @@
 
 <div class="artifact-gallery">
 	@{ int i = 0; }
-	@foreach (var image in _images) {
+	@foreach (var image in Artifact.Images) {
 		<div id="artifact-holder-@i" class="artifact-holder">
 			<div class="artifact-cap">
 				<a href="@Artifact.Id.FullId/@image.Name" target="_blank" class="a-normal">@image.Name</a>
@@ -33,17 +33,4 @@
 @code {
 	[Parameter]
 	public required ArtifactPayload Artifact { get; set; }
-
-	private IEnumerable<FileInfo> _images;
-
-	protected override Task OnInitializedAsync() {
-		var extensions = new[] { ".gif", ".jpg", ".jpeg", ".png", ".webp" };
-		_images = Artifact.PostDirectory
-			.EnumerateFiles()
-			.Where(f => extensions.Contains(f.Extension))
-			.OrderBy(f => f.Name)
-			.ToList();
-		
-		return base.OnInitializedAsync();
-	}
 }

@@ -188,16 +188,28 @@ public class ArtifactSocialMediaLinks {
 public class ArtifactPayloadJson {
 	public required String Title { get; set; }
 	public required DateTime Created { get; set; }
-	public required String[] Tags { get; set; }
-	public required ArtifactSocialMediaLinks Links { get; set; }
+	public String[] Tags { get; set; }
+	public ArtifactSocialMediaLinks Links { get; set; }
 }
 
 public sealed class ArtifactPayload : IPostPayload {
+	private static readonly String[] ImageExtensions = [ ".gif", ".jpg", ".jpeg", ".png", ".webp" ];
+	
 	public static String PathFragment => "Museum";
 	public static String PostFile => "artifact.md";
 	public static Type JsonTarget => typeof(ArtifactPayloadJson);
-	
-	public DirectoryInfo PostDirectory { get; set; }
+
+	public DirectoryInfo PostDirectory {
+		get;
+		set {
+			field = value;
+			this.Images = value.EnumerateFiles()
+				.Where(f => ImageExtensions.Contains(f.Extension))
+				.OrderBy(f => f.Name)
+				.ToList();
+		}
+	}
+
 	public PostId Id { get; set; }
 	public String Title { get; set; }
 	public DateTime Created { get; set; }
@@ -205,7 +217,8 @@ public sealed class ArtifactPayload : IPostPayload {
 	
 	public IList<String> Tags { get; set; }
 	public ArtifactSocialMediaLinks Links { get; set; }
-	
+	public IList<FileInfo> Images { get; set; }
+
 	public void LoadJson(dynamic json) {
 		this.Title = json.Title;
 		this.Created = json.Created;

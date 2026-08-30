@@ -16,20 +16,24 @@
 *@
 
 @page "/museum"
+@layout MainLayoutNoNBox
 @inject PostStore PostStore
 
-<div class="flex flex-col gap-2">
-	@foreach (var p in Posts) {
-		<div class="post-component" id="artifact-@p.Id.FullId">
-			<h2 class="post-title">
-				<a href="/museum/@p.Id.FullId">@p.Title</a>
-			</h2>
-			<p class="flex gap-2">
-				<span class="post-info-span">@p.Created.ToString("yyyy-MM-dd")</span>
-				@p.Title
-			</p>
-		</div>
-	}
+<AppTitle>Museum</AppTitle>
+
+<div class="n-box clear-n-boxx">
+	<ul class="artifactindex-holder">
+		@foreach (var p in Posts) {
+			<li class="artifactindex-component relative">
+				<img src="/museum/@p.Id.FullId/@p.Images.First().Name" alt="@String.Join(", ", p.Tags)" />
+				@if (p.Images.Count > 1) {
+					<div class="artifactindex-overlay">
+						<img alt="Mutliple images indicator" src="@Assets["/media/image_stack.svg"]"/>
+					</div>
+				}
+			</li>
+		}
+	</ul>
 </div>
 
 @code {

@@ -8,9 +8,7 @@
         "applicationUrl": "http://localhost:5274",
         "environmentVariables": {
           "ALL_POSTS_ROOT": "/srv/NKK/posts",
-          "ASPNETCORE_ENVIRONMENT": "Development",
-          "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Tailwind.Hosting",
-          "DEBUG": "tailwindcss:*"
+          "ASPNETCORE_ENVIRONMENT": "Development"
         }
       }
     }
