@@ -10,6 +10,16 @@
           "ALL_POSTS_ROOT": "/srv/NKK/posts",
           "ASPNETCORE_ENVIRONMENT": "Development"
         }
+      },
+      "http (Release)": {
+        "commandName": "Project",
+        "dotnetRunMessages": true,
+        "launchBrowser": true,
+        "applicationUrl": "http://localhost:5274",
+        "environmentVariables": {
+          "ALL_POSTS_ROOT": "/srv/NKK/posts",
+          "ASPNETCORE_ENVIRONMENT": "Release"
+        }
       }
     }
   }
