@@ -16,30 +16,25 @@
 *@
 
 @page "/sayings/{FullId}"
+@using FluentResults
 @inject PostStore PostStore
-@inject IHttpContextAccessor HttpContextAccessor
-@inject NavigationManager NavigationManager
 
-<AppTitle>@PostData.Title</AppTitle>
-<UsePrism />
+<AppTitle>@SayingData.Title</AppTitle>
+<UsePrism/>
 
-<Markdown Content="@PostData.GetMarkdown()" hx-disable></Markdown>
+<Markdown Content="@SayingData.GetMarkdown()" hx-disable></Markdown>
 
 @code {
 	[Parameter]
 	public required String FullId { get; set; }
 
-	public required SayingPayload? PostData;
-	
-	protected override Task OnInitializedAsync() {
-		var id = PostId.From(FullId);
-		if (id.IsFailed)
-			return Utils.FailPage(HttpContextAccessor, NavigationManager, base.OnInitializedAsync, StatusCodes.Status404NotFound);
+	private Result<PostId> IdBundle => PostId.From(FullId);
+	private SayingPayload SayingData => PostStore.Get<SayingPayload>(IdBundle.Value)!;
+
+	protected override void OnInitialized() {
+		if (IdBundle.IsFailed || SayingData == null)
+			throw new StatusCodeException(404);
 		
-		PostData = PostStore.Get<SayingPayload>(id.Value);
-		if (PostData == null)
-			return Utils.FailPage(HttpContextAccessor, NavigationManager, base.OnInitializedAsync, StatusCodes.Status404NotFound);
-		
-		return base.OnInitializedAsync();
+		base.OnInitialized();
 	}
 }

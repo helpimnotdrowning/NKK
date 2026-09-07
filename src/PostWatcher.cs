@@ -17,7 +17,10 @@
 
 using Microsoft.Extensions.Options;
 using NUglify.Helpers;
+using Serilog;
+using Serilog.Events;
 using ThrottleDebounce;
+using ILogger = Serilog.ILogger;
 
 namespace NKK;
 
@@ -25,7 +28,8 @@ public class PostWatcherOptions {
 	public DirectoryInfo? AllPostsRoot { get; set; }
 }
 
-public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOptions<PostWatcherOptions> options) : BackgroundService {
+public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> options) : BackgroundService {
+	private static ILogger _logger = Log.ForContext<PostWatcher>();
 	// lambda that will be called by UpdateStore_EventWrapper
 	// this should never be called by anyone else!!
 	private Action _debouncedUpdate;
@@ -55,8 +59,7 @@ public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOpti
 		watcher.Deleted += this.UpdateStore_EventWrapper;
 		watcher.Renamed += this.UpdateStore_EventWrapper;
 		watcher.Error += (sender, e) => {
-			// Utils.WriteException(e.GetException());
-			logger.LogError(e.GetException(), "PostWatcher got an error!");
+			_logger.Error(e.GetException(), "PostWatcher got an error!");
 		};
 		
 		return Task.CompletedTask;
@@ -73,11 +76,15 @@ public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOpti
 	///		see <see cref="FileSystemEventHandler"/>
 	/// </param>
 	private void UpdateStore_EventWrapper(Object sender, FileSystemEventArgs e) {
-		if (e is RenamedEventArgs re) {
-			logger.LogInformation($"{DateTime.Now}: Got FileSystemEvent: File '{re.OldName}' experienced {re.ChangeType} (to '{re.Name}')");
-		} else {
-			logger.LogInformation($"{DateTime.Now}: Got FileSystemEvent: File '{e.Name}' experienced {e.ChangeType}");
-		}
+		if (e is RenamedEventArgs re)
+			_logger.Information("Got FileSystemEvent: File '{OldName}' experienced {ChangeType} (to '{Name}')",
+				re.OldName,
+				re.ChangeType,
+				re.Name );
+		else
+			_logger.Information("Got FileSystemEvent: File {Name} experienced {ChangeType}",
+				e.Name,
+				e.ChangeType);
 		
 		this._debouncedUpdate();
 	}
@@ -94,9 +101,16 @@ public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOpti
 		List<String> addedPosts = [];
 		
 		IEnumerable<T> posts = postStore.GetAll<T>().ToList();
+		// check on current posts
 		posts.ForEach(post => {
 			var newPost = Utils.ReadPost<T>(post.PostDirectory);
 			if (newPost.IsFailed) {
+				var err = newPost.Errors.Cast<Utils.ReadPostError>().First();
+				_logger.Error("Failed to read updated {0} ({Id}), removing from store: {NKK_Reason} ({Message})",
+					typeof(T),
+					post.Id,
+					err.NKK_Reason,
+					err.Message);
 				postStore.Remove<T>(post.Id);
 				return;
 			}
@@ -109,17 +123,27 @@ public class PostWatcher(PostStore postStore, ILogger<PostWatcher> logger, IOpti
 			addedPosts.Add(post.PostDirectory.FullName);
 		});
 		
+		// look for new posts
 		new DirectoryInfo(Path.Combine(options.Value.AllPostsRoot!.FullName, T.PathFragment)).EnumerateDirectories()
-			.Where(d => !addedPosts.Contains(d.FullName))
+			.Where(d => !addedPosts.Contains(d.FullName)) // note: this is fine, remember we are per T
 			.Select(Utils.ReadPost<T>)
 			.ForEach(res => {
-				if (res.IsFailed) {
+				if (!res.IsFailed) {
+					if (_logger.IsEnabled(LogEventLevel.Debug))
+						_logger.Debug("Added {0}: {Title} ({Id})",
+							typeof(T),
+							res.Value.Title,
+							res.Value.Id
+						);
+					postStore.AddOrUpdate<T>(res.Value.Id, res.Value);
+				} else {
 					var err = res.Errors.Cast<Utils.ReadPostError>().First();
-					logger.LogWarning($"Failed to load {typeof(T)}: {err.NKK_Reason}: {err.Message}");
-					return;
+					_logger.Error("Failed to load {0}({Id}) : {NKK_Reason} ({Message})",
+						typeof(T),
+						err.Id,
+						err.NKK_Reason,
+						err.Message);
 				}
-				
-				postStore.AddOrUpdate<T>(res.Value.Id, res.Value); 
 			});
 	}
 	

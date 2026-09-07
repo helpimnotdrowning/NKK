@@ -94,10 +94,11 @@ public static class Utils {
 		Unknown,
 	}
 	
-	public class ReadPostError(ReadPostReason NKK_Reason, String message) : FluentResults.IError {
+	public class ReadPostError(ReadPostReason NKK_Reason, String message, String fullId) : FluentResults.IError {
 		public ReadPostReason NKK_Reason { get; } = NKK_Reason;
+		public String Id = fullId;
 		public String Message { get; } = message;
-		public Dictionary<String, Object> Metadata { get; } = new Dictionary<String, Object>();
+		public Dictionary<String, Object> Metadata { get; } = new();
 		public List<IError> Reasons { get; } = [];
 	}
 	
@@ -121,13 +122,13 @@ public static class Utils {
 			reader = new StreamReader(Path.Combine(postDirectory.FullName, T.PostFile), Encoding.UTF8);
 		} catch (Exception e) {
 			return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize, 
-				$"Failed to read post file for '{postNameForErr}': {e.Message}"));
+				$"Failed to read post file for '{postNameForErr}': {e.Message}", postDirectory.Name));
 		}
 		
 		String[] rawContent = reader.ReadToEnd().Split("%---", 2);
 		if (rawContent.Length != 2)
 			return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
-				$"Failed to split post '{postNameForErr}'"));
+				$"Failed to split post '{postNameForErr}'", postDirectory.Name));
 		
 		return new PostData {
 			JsonString = rawContent[0],
@@ -162,13 +163,17 @@ public static class Utils {
 			var candidates = postDirectory.EnumerateFiles(T.PostFile).ToList();
 			if (candidates.Count == 0)
 				return Result.Fail(new ReadPostError(ReadPostReason.NoPost,
-					$"Post '{postNameForErr}' has no {T.PostFile} file"));
+					$"Post '{postNameForErr}' has no {T.PostFile} file", postDirectory.Name));
 			FileInfo postFile = candidates.First();
 			
 			// try to read the post file
 			var postDataResult = GetPostData<T>(postDirectory);
 			if (postDataResult.IsFailed)
 				return Result.Fail(postDataResult.Errors);
+			
+			var maybeId = PostId.From(postDirectory.Name);
+			if (maybeId.IsFailed)
+				return Result.Fail(maybeId.Errors);
 			
 			// try to deserialize the payload
 			dynamic? payloadJson;
@@ -180,15 +185,11 @@ public static class Utils {
 				});
 				if (payloadJson == null)
 					return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
-						$"Payload for post '{postNameForErr} was null"));
+						$"Payload for post '{postNameForErr} was null", maybeId.Value.FullId));
 			} catch (Exception e) {
 				return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
-					$"Failed to parse payload for post '{postNameForErr}': {e.Message}"));
+					$"Failed to parse payload for post '{postNameForErr}': {e.Message}", maybeId.Value.FullId));
 			}
-			
-			var maybeId = PostId.From(postDirectory.Name);
-			if (maybeId.IsFailed)
-				return Result.Fail(maybeId.Errors);
 			
 			T payload = new T {
 				PostDirectory = postDirectory,
@@ -201,10 +202,11 @@ public static class Utils {
 			return payload;
 		} catch (Exception e) {
 			return Result.Fail(new ReadPostError(ReadPostReason.Unknown, 
-				$"Failed to read post '{postNameForErr}' due to an unknown exception: {e.Message}"));
+				$"Failed to read post '{postNameForErr}' due to an unknown exception: {e.Message}", postDirectory.Name));
 		}
 	}
 	
+	public static String RESET = "\e[0m";
 	public static String BRIGHT_RED = "\e[91m";
 	public static String BLACK_ON_RED = "\e[37m\e[41m";
 			
@@ -215,7 +217,7 @@ public static class Utils {
 			_ => "",
 		};
 
-		return $"{col}{code} ({GetReasonPhrase(code)})";
+		return $"{col}{code} ({GetReasonPhrase(code)}){RESET}";
 	}
 
 	public static String FormatSize(long size) {
@@ -231,41 +233,6 @@ public static class Utils {
 	
 	public static bool IsAbsoluteUrl(String url) {
 		return Uri.TryCreate(url, UriKind.Absolute, out _);
-	}
-
-	public static void WriteException(Exception ex) {
-		Exception? exc = ex;
-		while (exc != null) {
-			Console.WriteLine($"ERROR: watcher failed! ${exc.GetType()}: ${exc.Message}");
-			Console.WriteLine(exc.StackTrace);
-			Console.WriteLine();
-			exc = exc.InnerException;
-		}
-	}
-	
-	/// <summary>
-	///		Shortcut to call the error page
-	/// </summary>
-	/// <param name="httpContextAccessor">
-	///		<c>@inject IHttpContextAccessor HttpContextAccessor</c>
-	/// </param>
-	/// <param name="navigationManager">
-	///		<c>@inject NavigationManager NavigationManager</c>
-	/// </param>
-	/// <param name="OnInitializedAsync">
-	///		<c>base.OnInitializedAsync</c>
-	/// </param>
-	/// <param name="statusCode">
-	///		Integer where 400 &lt;= statusCode &lt;= 599
-	/// </param>
-	/// <returns>
-	///		Task, not sure what it actually represents but just it
-	/// </returns>
-	public static Task FailPage(IHttpContextAccessor httpContextAccessor, NavigationManager navigationManager, Func<Task> OnInitializedAsync,
-		int statusCode) {
-		httpContextAccessor.HttpContext!.Response.StatusCode = statusCode;
-		navigationManager.NotFound();
-		return OnInitializedAsync();
 	}
 
 	extension<T>(IEnumerable<T> enumerable) {

@@ -40,11 +40,11 @@ public class PostId : IComparable {
 		String[] ids = fullId.Split('-', 2);
 		if (ids.Length != 2)
 			return Result.Fail(new ReadPostError(ReadPostReason.InvalidNumericId,
-				$"ID for post '{fullId}' was malformed"));
+				$"ID for post '{fullId}' was malformed", fullId));
 		
 		if (!Int32.TryParse(ids[0], out int numericId))
 			return Result.Fail(new ReadPostError(ReadPostReason.InvalidNumericId,
-				$"ID for post '{fullId}' could not be parsed"));
+				$"ID for post '{fullId}' could not be parsed", fullId));
 		
 		return new PostId {
 			FullId = fullId,
@@ -57,6 +57,10 @@ public class PostId : IComparable {
 		if (obj == null || obj.GetType() != typeof(PostId)) return 1;
 		
 		return this.NumericId.CompareTo( ((PostId)obj).NumericId );
+	}
+
+	public override String ToString() {
+		return this.FullId;
 	}
 }
 

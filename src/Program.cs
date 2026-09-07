@@ -15,6 +15,7 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Text;
 
@@ -43,12 +44,14 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions() {
 
 // this could be cool https://github.com/serilog-contrib/serilog-enrichers-clientinfo
 Log.Logger = new LoggerConfiguration()
+	// .MinimumLevel.Debug()
 	.MinimumLevel.Information()
+	.MinimumLevel.Override("NKK", LogEventLevel.Debug)
 	.MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
 	.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
 	.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
-	.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
 	.MinimumLevel.Override("Microsoft.AspNetCore.StaticFiles.StaticFileMiddleware", LogEventLevel.Warning)
+	// .MinimumLevel.Override("Tailwind", LogEventLevel.Debug)
 	.Enrich.FromLogContext()
 	.WriteTo.Console(new ExpressionTemplate(
 		"[{@t:s}] [{SourceContext}/{@l:u4}] {@m}\n{@x}",
@@ -57,7 +60,7 @@ Log.Logger = new LoggerConfiguration()
 	.CreateLogger();
 
 builder.Logging.ClearProviders();
-builder.Host.UseSerilog();
+builder.Services.AddSerilog();
 
 // Add services to the container.
 builder.Services.AddHttpContextAccessor();
@@ -67,7 +70,7 @@ builder.Services.AddResponseCompression(options => {
 	options.Providers.Add<BrotliCompressionProvider>();
 	options.Providers.Add<GzipCompressionProvider>();
 	options.MimeTypes = ResponseCompressionDefaults.MimeTypes;
-} );
+});
 builder.Services.Configure<BrotliCompressionProviderOptions>(options => {
 	options.Level = CompressionLevel.SmallestSize;
 });
@@ -78,8 +81,7 @@ builder.Services.Configure<GzipCompressionProviderOptions>(options => {
 
 builder.Services.AddSingleton<PostStore>();
 builder.Services.Configure<PostWatcherOptions>(opts => {
-	opts.AllPostsRoot = new DirectoryInfo(Environment.GetEnvironmentVariable("ALL_POSTS_ROOT") ??
-		throw new ArgumentException("env:ALL_POSTS_ROOT is unset!"));
+	opts.AllPostsRoot = new DirectoryInfo(allPostsRoot);
 });
 builder.Services.AddHostedService<PostWatcher>();
 builder.Services.AddScoped<HeadAccumulator>();
@@ -90,38 +92,34 @@ builder.UseTailwindCli();
 
 var app = builder.Build();
 
-app.UseSerilogRequestLogging(opts => {
-	opts.EnrichDiagnosticContext = (diag, _) => {
-		diag.Set("nhnd_IsHttp", true);
-	};
-	opts.IncludeQueryInRequestPath = true;
-	opts.GetMessageTemplateProperties = (context, requestPath, elapsedMs, statusCode) => [
-		new LogEventProperty("Host", new ScalarValue(context.Request.Host)),
-		new LogEventProperty("Method", new ScalarValue(context.Request.Method)),
-		new LogEventProperty("Path", new ScalarValue(requestPath)),
-		// query by IncludeQueryInRequestPath
-		new LogEventProperty("Protocol", new ScalarValue(context.Request.Protocol)),
-		new LogEventProperty("Protocol", new ScalarValue(context.Request.Protocol)),
-		
-		new LogEventProperty("StatusCodeWithReason", new ScalarValue( Utils.FormatStatusCode(statusCode) )),
-		new LogEventProperty("ContentLength", new ScalarValue( Utils.FormatSize(context.Response.ContentLength ?? 0) )),
-		new LogEventProperty("ElapsedMilliseconds", new ScalarValue(elapsedMs))
-	];
-	opts.MessageTemplate = $"HTTP | {{Host}} {{Method}} {{Path}} {{Protocol}} >>> {{StatusCodeWithReason}} {{ContentLength}} took {{ElapsedMilliseconds}}ms";
+var httpLogger = Log.Logger
+	.ForContext("SourceContext", "HTTP");
+app.Use(async (context, next) => {
+	var watch = new Stopwatch();
+	watch.Start();
+	try {
+		await next(context);
+	} finally {
+		httpLogger
+			.Information("{Host} {Method} {2} {Protocol} by {4} >>> {5} {6} took {TotalMilliseconds:F2}ms",
+				context.Request.Host,
+				context.Request.Method,
+				context.Request.Path + context.Request.QueryString,
+				context.Request.Protocol,
+				context.Request.Headers.UserAgent[0] ?? "<none>",
+				Utils.FormatStatusCode( context.Response.StatusCode ),
+				Utils.FormatSize( (long)(context.Response.ContentLength ?? context.Items["nhnd_Content-Length"] ?? -1L) ),
+				watch.Elapsed.TotalMilliseconds
+			);
+		watch.Stop();
+	}
 });
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment()) {
-	app.UseDeveloperExceptionPage();
-} else {
-	app.UseExceptionHandler("/Error", createScopeForErrors: true);
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+if (!app.Environment.IsDevelopment())
 	app.UseHsts();
-}
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-
-app.UseAntiforgery();
+app.UseMiddleware<ExceptionCatchingMiddleware>();
 app.UseResponseCompression();
 app.Use(async (context, next) => {
 	// context.Response.Body is a direct line to the client, so swap it out for
@@ -147,9 +145,13 @@ app.Use(async (context, next) => {
 		memoryStream.Position = 0;
 		String html = await new StreamReader(memoryStream).ReadToEndAsync();
 		String minified = optimizer(html);
+		var res = Encoding.UTF8.GetBytes(minified);
 		
-		context.Response.ContentLength = Encoding.UTF8.GetByteCount(minified);
-		await responseStream.WriteAsync(Encoding.UTF8.GetBytes(minified));
+		// WE SHOULD NOT DO THIS HERE, THIS IS THE UNCOMPRESSED SIZE
+		// (before UseResponseCompression)
+		context.Response.ContentLength = res.Length;
+		context.Items["nhnd_Content-Length"] = res.LongLength; 
+		await responseStream.WriteAsync(res);
 		context.Response.Body = responseStream;
 		return;
 	}
@@ -163,6 +165,9 @@ app.Use(async (context, next) => {
 	}
 });
 
+app.UseRouting();
+app.UseAntiforgery();
+
 var postValidAccompanyingTypes = new FileExtensionContentTypeProvider(
 	new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase) {
 		{ ".png", "image/png" },
@@ -171,18 +176,37 @@ var postValidAccompanyingTypes = new FileExtensionContentTypeProvider(
 		{ ".md", "text/markdown" },
 });
 
-app.UseStaticFiles();
+Action<StaticFileResponseContext> set_nhndContentLength = (context) => 
+	context.Context.Items["nhnd_Content-Length"] = context.File.Length;
+
+app.UseStaticFiles(new StaticFileOptions {
+	OnPrepareResponse = set_nhndContentLength,
+});
 app.UseStaticFiles(new StaticFileOptions {
 	FileProvider = new PhysicalFileProvider(Path.Combine(allPostsRoot, SayingPayload.PathFragment)),
 	RequestPath = "/sayings",
 	ServeUnknownFileTypes = false,
 	ContentTypeProvider = postValidAccompanyingTypes,
+	OnPrepareResponse = set_nhndContentLength,
 });
 app.UseStaticFiles(new StaticFileOptions {
 	FileProvider = new PhysicalFileProvider(Path.Combine(allPostsRoot, ArtifactPayload.PathFragment)),
 	RequestPath = "/museum",
 	ServeUnknownFileTypes = false,
 	ContentTypeProvider = postValidAccompanyingTypes,
+	OnPrepareResponse = set_nhndContentLength,
+});
+
+// this wraps the last mapper-thing ALWAYS to intercept 404s after all resolutions fail
+app.Use(async (context, next) => {
+	await next(context);
+	// already running handler?
+	if ((bool?)context.Items[ExceptionCatchingMiddleware.Name_ItemTriggered] == true)
+		return;
+	
+	// hand off to handler
+	if (context.Response.StatusCode == 404)
+		throw new StatusCodeException(404);
 });
 
 app.MapRazorComponents<App>();

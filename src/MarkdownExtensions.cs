@@ -21,6 +21,8 @@ using Markdig.Renderers;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using NUglify.Helpers;
+using Serilog;
+using ILogger = Serilog.ILogger;
 
 namespace NKK;
 
@@ -50,6 +52,9 @@ public class LocalLinkFixerExtension : IMarkdownExtension {
 }
 
 public class FakeLinkProtocolOptions {
+	// yes, not for this class!
+	private ILogger _logger = Log.Logger.ForContext<FakeLinkProtocolExtension>();
+	
 	/// <summary>
 	///		URL "protocol" that will be used to detect compatible urls, which must
 	///		then start with <c>protocol:</c>
@@ -82,8 +87,9 @@ public class FakeLinkProtocolOptions {
 				try {
 					return value(link, fallbackOrigin);
 				} catch (Exception ex) {
-					Console.WriteLine($"Fake link protocol '{this.Protocol}' threw an exception for link '{link}'!");
-					Utils.WriteException(ex);
+					this._logger.Error(ex, "Fake link protocol {Protocol} threw an exception for link {link}!",
+						this.Protocol,
+						link);
 					
 					return $"{fallbackOrigin}/{link}";
 				}

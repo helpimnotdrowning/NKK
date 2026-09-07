@@ -45,12 +45,11 @@
 	public required String FullId { get; set; }
 
 	private Result<PostId> IdBundle => PostId.From(FullId);
-	private ArtifactPayload? ArtifactData => PostStore.Get<ArtifactPayload>(IdBundle.Value);
+	private ArtifactPayload ArtifactData => PostStore.Get<ArtifactPayload>(IdBundle.Value)!;
 	
 	protected override Task OnInitializedAsync() {
-		var id = PostId.From(FullId);
-		if (id.IsFailed || ArtifactData == null)
-			return Utils.FailPage(HttpContextAccessor, NavigationManager, base.OnInitializedAsync, StatusCodes.Status404NotFound);
+		if (IdBundle.IsFailed || ArtifactData == null)
+			throw new StatusCodeException(404);
 
 		return base.OnInitializedAsync();
 	}
