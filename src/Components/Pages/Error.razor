@@ -54,7 +54,6 @@
 }
 
 @code {
-
 	private IExceptionHandlerFeature? ExceptionHandler => HttpContextAccessor.HttpContext!.Features.Get<IExceptionHandlerFeature>();
 	private Exception Ex => ExceptionHandler!.Error;
 

@@ -104,4 +104,5 @@ public class StatusCodeException : Exception {
 			throw new ArgumentOutOfRangeException(nameof(statusCode));
 		this.StatusCode = statusCode;
 	}
+	
 }

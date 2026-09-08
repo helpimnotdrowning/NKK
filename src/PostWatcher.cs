@@ -25,7 +25,7 @@ using ILogger = Serilog.ILogger;
 namespace NKK;
 
 public class PostWatcherOptions {
-	public DirectoryInfo? AllPostsRoot { get; set; }
+	public required DirectoryInfo AllPostsRoot { get; set; }
 }
 
 public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> options) : BackgroundService {
@@ -38,7 +38,7 @@ public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> optio
 	protected override Task ExecuteAsync(CancellationToken stoppingToken) {
 		this.UpdateAllStores();
 		
-		var watcher = new FileSystemWatcher(options.Value.AllPostsRoot!.FullName) {
+		var watcher = new FileSystemWatcher(options.Value.AllPostsRoot.FullName) {
 			NotifyFilter = NotifyFilters.Attributes
 				| NotifyFilters.CreationTime
 				| NotifyFilters.DirectoryName
