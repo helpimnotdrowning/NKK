@@ -22,7 +22,7 @@
 	@foreach (var p in Posts) {
 		<div class="post-component" id="saying-@p.Id.FullId">
 			<h2 class="post-title">
-				<a href="/sayings/@p.Id.FullId">@p.Title</a>
+				<a href="/sayings/@p.Id.FullId" hx-boost="true">@p.Title</a>
 			</h2>
 			<p class="flex gap-2">
 				<span class="post-info-span">@p.Created.ToString("yyyy-MM-dd")</span>

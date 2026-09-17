@@ -31,8 +31,8 @@
 		<h1>@ArtifactData.Title</h1>
 		<span class="post-info-span">
 			Published @ArtifactData.Created.ToString("yyyy-MM-dd")
-			&mdash;
-			Tags: "@( String.Join("\", \"", ArtifactData.Tags) )"
+			<span class="text-xs">⁂</span>
+			Tags: @(String.Join(", ", ArtifactData.Tags))
 		</span>
 	</div>
 	<Markdown Content="@ArtifactData.GetMarkdown()" class="no-top-pad" hx-disable/>

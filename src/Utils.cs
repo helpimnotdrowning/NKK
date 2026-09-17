@@ -111,9 +111,12 @@ public static class Utils {
 	///		Read post data (JSON and Markdown) for a given post directory
 	/// </summary>
 	/// <param name="postDirectory">
-	///		
+	///		Post directory, containing a <see cref="T.PostFile"/>.
 	/// </param>
-	/// <returns></returns>
+	/// <returns>
+	///		Result containing either a complete <see cref="PostData"/>, or a
+	///		<see cref="ReadPostError"/>
+	/// </returns>
 	public static Result<PostData> GetPostData<T>(DirectoryInfo postDirectory) where T : IPostPayload {
 		String postNameForErr = $"{postDirectory.Parent?.Name}/{postDirectory.Name}";
 		
@@ -135,7 +138,22 @@ public static class Utils {
 			MarkdownContent = rawContent[1]
 		};
 	}
-	
+
+	/// <summary>
+	///		Read post data (JSON and Markdown) for a given post. Wrapper for GetPostData
+	///		when you already have a complete (though not necessarily valid) payload.
+	/// </summary>
+	/// <param name="postPayload">
+	///		Potentially valid <see cref="IPostPayload"/>
+	/// </param>
+	/// <returns>
+	///		Result containing either a complete <see cref="PostData"/>, or a
+	///		<see cref="ReadPostError"/>
+	/// </returns>
+	public static Result<PostData> GetPostData<T>(T postPayload) where T : IPostPayload {
+		return GetPostData<T>(postPayload.PostDirectory);
+	}
+
 	/// <summary>
 	///		Try to read a post at <paramref name="postDirectory"/>
 	/// </summary>
@@ -167,34 +185,32 @@ public static class Utils {
 			FileInfo postFile = candidates.First();
 			
 			// try to read the post file
-			var postDataResult = GetPostData<T>(postDirectory);
-			if (postDataResult.IsFailed)
-				return Result.Fail(postDataResult.Errors);
+			if (!GetPostData<T>(postDirectory).HasResult(out var postData, out var postDataErr))
+				return Result.Fail(postDataErr);
 			
-			var maybeId = PostId.From(postDirectory.Name);
-			if (maybeId.IsFailed)
-				return Result.Fail(maybeId.Errors);
+			if (!PostId.From(postDirectory.Name).HasResult(out var id, out var idErr))
+				return Result.Fail(idErr);
 			
 			// try to deserialize the payload
 			dynamic? payloadJson;
 			try {
-				payloadJson = JsonSerializer.Deserialize(postDataResult.Value.JsonString, T.JsonTarget, new JsonSerializerOptions {
+				payloadJson = JsonSerializer.Deserialize(postData.JsonString, T.JsonTarget, new JsonSerializerOptions {
 					AllowTrailingCommas = true,
 					AllowOutOfOrderMetadataProperties = true,
 					ReadCommentHandling = JsonCommentHandling.Skip,
 				});
 				if (payloadJson == null)
 					return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
-						$"Payload for post '{postNameForErr} was null", maybeId.Value.FullId));
+						$"Payload for post '{postNameForErr} was null", id.FullId));
 			} catch (Exception e) {
 				return Result.Fail(new ReadPostError(ReadPostReason.PayloadDeserialize,
-					$"Failed to parse payload for post '{postNameForErr}': {e.Message}", maybeId.Value.FullId));
+					$"Failed to parse payload for post '{postNameForErr}': {e.Message}", id.FullId));
 			}
 			
 			T payload = new T {
 				PostDirectory = postDirectory,
 				PostFileLastModified = postFile.LastWriteTimeUtc,
-				Id = maybeId.Value,
+				Id = id,
 			};
 			
 			payload.LoadJson(payloadJson);
@@ -266,6 +282,20 @@ public static class Utils {
 				});
 			
 			return builder.ToString();
+		}
+	}
+
+	extension<TResult>(Result<TResult> res) {
+		public bool HasResult(out TResult val, out IReadOnlyList<IError> err) {
+			if (res.IsFailed) {
+				val = default!;
+				err = res.Errors;
+				return false;
+			}
+
+			val = res.Value;
+			err = [];
+			return true;
 		}
 	}
 }

@@ -33,12 +33,13 @@ public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> optio
 	// lambda that will be called by UpdateStore_EventWrapper
 	// this should never be called by anyone else!!
 	private Action _debouncedUpdate;
+	private FileSystemWatcher _watcher;
 	
 	// TODO: seems to stop watching on exception? i think???
 	protected override Task ExecuteAsync(CancellationToken stoppingToken) {
 		this.UpdateAllStores();
 		
-		var watcher = new FileSystemWatcher(options.Value.AllPostsRoot.FullName) {
+		this._watcher = new FileSystemWatcher(options.Value.AllPostsRoot.FullName) {
 			NotifyFilter = NotifyFilters.Attributes
 				| NotifyFilters.CreationTime
 				| NotifyFilters.DirectoryName
@@ -51,15 +52,19 @@ public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> optio
 		};
 		
 		this._debouncedUpdate = Debouncer.Debounce(
-			(Action)this.UpdateAllStores, TimeSpan.FromSeconds(5), leading: true, trailing: false
+			(Action)this.UpdateAllStores, TimeSpan.FromSeconds(1), leading: true, trailing: false
 		).Invoke;
 		
-		watcher.Changed += this.UpdateStore_EventWrapper;
-		watcher.Created += this.UpdateStore_EventWrapper;
-		watcher.Deleted += this.UpdateStore_EventWrapper;
-		watcher.Renamed += this.UpdateStore_EventWrapper;
-		watcher.Error += (sender, e) => {
+		this._watcher.Changed += this.UpdateStore_EventWrapper;
+		this._watcher.Created += this.UpdateStore_EventWrapper;
+		this._watcher.Deleted += this.UpdateStore_EventWrapper;
+		this._watcher.Renamed += this.UpdateStore_EventWrapper;
+		this._watcher.Error += (sender, e) => {
 			_logger.Error(e.GetException(), "PostWatcher got an error!");
+		};
+
+		this._watcher.Disposed += (_, _) => {
+			_logger.Error("oops threw the watcher away :/");
 		};
 		
 		return Task.CompletedTask;
@@ -76,15 +81,16 @@ public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> optio
 	///		see <see cref="FileSystemEventHandler"/>
 	/// </param>
 	private void UpdateStore_EventWrapper(Object sender, FileSystemEventArgs e) {
-		if (e is RenamedEventArgs re)
-			_logger.Information("Got FileSystemEvent: File '{OldName}' experienced {ChangeType} (to '{Name}')",
-				re.OldName,
-				re.ChangeType,
-				re.Name );
-		else
-			_logger.Information("Got FileSystemEvent: File {Name} experienced {ChangeType}",
-				e.Name,
-				e.ChangeType);
+		if (_logger.IsEnabled(LogEventLevel.Debug))
+			if (e is RenamedEventArgs re)
+				_logger.Debug("Got FileSystemEvent: File '{OldName}' experienced {ChangeType} (to '{Name}')",
+					re.OldName,
+					re.ChangeType,
+					re.Name );
+			else
+				_logger.Debug("Got FileSystemEvent: File {Name} experienced {ChangeType}",
+					e.Name,
+					e.ChangeType);
 		
 		this._debouncedUpdate();
 	}
@@ -98,51 +104,66 @@ public class PostWatcher(PostStore postStore, IOptions<PostWatcherOptions> optio
 	private void UpdateStore<T>() where T : class, IPostPayload, new() {
 		// Now That's What I Call Type Safety!
 		
-		List<String> addedPosts = [];
-		
-		IEnumerable<T> posts = postStore.GetAll<T>().ToList();
+		List<String> checkedPosts = [];
+
+		var posts = postStore.GetAll<T>();
 		// check on current posts
 		posts.ForEach(post => {
-			var newPost = Utils.ReadPost<T>(post.PostDirectory);
-			if (newPost.IsFailed) {
-				var err = newPost.Errors.Cast<Utils.ReadPostError>().First();
-				_logger.Error("Failed to read updated {0} ({Id}), removing from store: {NKK_Reason} ({Message})",
-					typeof(T),
-					post.Id,
-					err.NKK_Reason,
-					err.Message);
-				postStore.Remove<T>(post.Id);
+			if (Utils.ReadPost<T>(post.PostDirectory).HasResult(out var newPost, out var errs)) {
+				// post has been modified?
+				if (post.PostFileLastModified != newPost.PostFileLastModified) {
+					if (_logger.IsEnabled(LogEventLevel.Debug))
+						_logger.Debug("Updated {0}: {Title} ({Id})",
+							typeof(T),
+							newPost.Title,
+							newPost.Id
+						);
+					postStore.AddOrUpdate<T>(post.Id, newPost);
+				}
+				else {
+					if (_logger.IsEnabled(LogEventLevel.Debug))
+						_logger.Debug("Skipping {0}: {Title} ({Id})",
+							typeof(T),
+							newPost.Title,
+							newPost.Id
+						);
+				}
+
+				// please do not change post IDs while live...
+				checkedPosts.Add(post.PostDirectory.FullName);
 				return;
 			}
-			
-			if (post.PostFileLastModified == newPost.Value.PostFileLastModified)
-				return;
-			
-			// please do not change post IDs while live...
-			postStore.AddOrUpdate<T>(post.Id, newPost.Value);
-			addedPosts.Add(post.PostDirectory.FullName);
+
+			var err = errs.Cast<Utils.ReadPostError>().Last();
+			_logger.Error("Failed to read updated {0} ({Id}), removing from store: {NKK_Reason} ({Message})",
+				typeof(T),
+				post.Id,
+				err.NKK_Reason,
+				err.Message);
+			postStore.Remove<T>(post.Id);
+			checkedPosts.Add(post.PostDirectory.FullName);
 		});
 		
 		// look for new posts
 		new DirectoryInfo(Path.Combine(options.Value.AllPostsRoot!.FullName, T.PathFragment)).EnumerateDirectories()
-			.Where(d => !addedPosts.Contains(d.FullName)) // note: this is fine, remember we are per T
+			.Where(d => !checkedPosts.Contains(d.FullName)) // note: this is fine, remember we are per T
 			.Select(Utils.ReadPost<T>)
 			.ForEach(res => {
-				if (!res.IsFailed) {
+				if (res.HasResult(out var post, out var err)) {
 					if (_logger.IsEnabled(LogEventLevel.Debug))
 						_logger.Debug("Added {0}: {Title} ({Id})",
 							typeof(T),
-							res.Value.Title,
-							res.Value.Id
+							post.Title,
+							post.Id
 						);
-					postStore.AddOrUpdate<T>(res.Value.Id, res.Value);
+					postStore.AddOrUpdate(post.Id, post);
 				} else {
-					var err = res.Errors.Cast<Utils.ReadPostError>().First();
+					var errC = err.Cast<Utils.ReadPostError>().Last();
 					_logger.Error("Failed to load {0}({Id}) : {NKK_Reason} ({Message})",
 						typeof(T),
-						err.Id,
-						err.NKK_Reason,
-						err.Message);
+						errC.Id,
+						errC.NKK_Reason,
+						errC.Message);
 				}
 			});
 	}

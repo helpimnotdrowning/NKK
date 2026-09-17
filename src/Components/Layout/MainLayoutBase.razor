@@ -31,7 +31,6 @@
 		<script src="@Assets["/jquery.js"]"></script>
 		<script src="@Assets["/htmx.js"]"></script>
 		<meta name="htmx-config" content='{"scrollIntoViewOnBoost":false}' />
-		
 		<meta name="darkreader-lock" />
 		
 		<HeadOutlet />
@@ -39,7 +38,7 @@
 		@* blank placeholder title, overriden (usually) in @Body *@
 		<AppTitle />
 	</head>
-	<body class="@(HasErrorStatusCode ? "from-red-400! to-red-500!" : "")">
+	<body class="@(HasErrorStatusCode ? "from-red-400! to-red-500!" : null)">
 		<Header />
 		<NavMenu />
 		@Body

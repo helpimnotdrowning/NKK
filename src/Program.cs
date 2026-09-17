@@ -34,8 +34,8 @@ using Serilog.Templates.Themes;
 using Tailwind;
 #endif
 
-String allPostsRoot = Environment.GetEnvironmentVariable("ALL_POSTS_ROOT") ??
-	throw new ArgumentException("env:ALL_POSTS_ROOT is unset!");
+var allPostsRoot = new DirectoryInfo(Environment.GetEnvironmentVariable("ALL_POSTS_ROOT")
+	?? throw new ArgumentException("env:ALL_POSTS_ROOT is unset!"));
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions() {
 	Args = args,
@@ -47,6 +47,7 @@ Log.Logger = new LoggerConfiguration()
 	// .MinimumLevel.Debug()
 	.MinimumLevel.Information()
 	.MinimumLevel.Override("NKK", LogEventLevel.Debug)
+	// .MinimumLevel.Override("NKK.PostWatcher", LogEventLevel.Debug)
 	.MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
 	.MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
 	.MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
@@ -81,7 +82,7 @@ builder.Services.Configure<GzipCompressionProviderOptions>(options => {
 
 builder.Services.AddSingleton<PostStore>();
 builder.Services.Configure<PostWatcherOptions>(opts => {
-	opts.AllPostsRoot = new DirectoryInfo(allPostsRoot);
+	opts.AllPostsRoot = allPostsRoot;
 });
 builder.Services.AddHostedService<PostWatcher>();
 builder.Services.AddScoped<HeadAccumulator>();
@@ -183,14 +184,14 @@ app.UseStaticFiles(new StaticFileOptions {
 	OnPrepareResponse = set_nhndContentLength,
 });
 app.UseStaticFiles(new StaticFileOptions {
-	FileProvider = new PhysicalFileProvider(Path.Combine(allPostsRoot, SayingPayload.PathFragment)),
+	FileProvider = new PhysicalFileProvider(Path.Combine(allPostsRoot.FullName, SayingPayload.PathFragment)),
 	RequestPath = "/sayings",
 	ServeUnknownFileTypes = false,
 	ContentTypeProvider = postValidAccompanyingTypes,
 	OnPrepareResponse = set_nhndContentLength,
 });
 app.UseStaticFiles(new StaticFileOptions {
-	FileProvider = new PhysicalFileProvider(Path.Combine(allPostsRoot, ArtifactPayload.PathFragment)),
+	FileProvider = new PhysicalFileProvider(Path.Combine(allPostsRoot.FullName, ArtifactPayload.PathFragment)),
 	RequestPath = "/museum",
 	ServeUnknownFileTypes = false,
 	ContentTypeProvider = postValidAccompanyingTypes,

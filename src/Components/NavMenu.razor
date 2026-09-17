@@ -15,14 +15,14 @@
 	along with NKK. If not, see <http://www.gnu.org/licenses/>.
 *@
 
-<div id="nav-sticky-check" class="h-0 w-full" />
-<nav class="n-box mt-2! w-full sticky top-4 z-99" on-init="@_nav__on_init">
+<div id="nav-sticky-check" class="h-0 w-full"/>
+<nav class="n-box mt-2! w-full sticky top-4 z-99" on-init="@_nav__on_init" hx-preserve="true">
 	<div>
 		@* maybe make this a list... *@
 		<div class="float-left flex gap-4">
-			<a href="/">Home</a>
-			<a href="/sayings">Posts</a>
-			<a href="/museum">Museum</a>
+			<a hx-boost="true" href="/">Home</a>
+			<a hx-boost="true" href="/sayings">Posts</a>
+			<a hx-boost="true" href="/museum">Museum</a>
 		</div>
 		<div class="float-right">
 			<a

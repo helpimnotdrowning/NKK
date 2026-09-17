@@ -18,9 +18,13 @@
 @using System.Text
 @inject IHttpContextAccessor HttpContextAccessor
 
-<div @attributes="ExtraAttributes" class="@( UseTypographyStyle ? "tx" : "" ) @( ExtraAttributes?.GetValueOrDefault("class", "") )">
+@if (StripOuter) {
 	@( (MarkupString)RenderHtml() )
-</div>
+} else {
+	<div @attributes="ExtraAttributes" class="@( UseTypographyStyle ? "tx" : "" ) @( ExtraAttributes?.GetValueOrDefault("class", "") )">
+		@( (MarkupString)RenderHtml() )
+	</div>
+}
 
 @code {
 	[Parameter]
@@ -34,6 +38,9 @@
 	
 	[Parameter]
 	public bool UseTypographyStyle { get; set; } = true;
+	
+	[Parameter]
+	public bool StripOuter { get; set; } = false;
 	
 	[Parameter(CaptureUnmatchedValues = true)]
 	public Dictionary<String, Object>? ExtraAttributes { get; set; }

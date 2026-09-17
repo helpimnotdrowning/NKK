@@ -20,7 +20,7 @@
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Config	
 
-<Markdown UseTypographyStyle="false">
+<Markdown StripOuter="true">
 	@( Config
 		.GetSection("Splashes")
 		.Get<String[]>()?

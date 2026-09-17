@@ -21,16 +21,22 @@
 
 <AppTitle>Museum</AppTitle>
 
-<div class="n-box clear-n-boxx">
+<div class="n-box clear-n-box">
 	<ul class="artifactindex-holder">
 		@foreach (var p in Posts) {
-			<li class="artifactindex-component relative">
-				<img src="/museum/@p.Id.FullId/@p.Images.First().Name" alt="@String.Join(", ", p.Tags)" />
-				@if (p.Images.Count > 1) {
-					<div class="artifactindex-overlay">
-						<img alt="Mutliple images indicator" src="@Assets["/media/image_stack.svg"]"/>
-					</div>
-				}
+			<li class="artifactindex-component">
+				<a class="artifactindex-inner" href="/museum/@p.Id.FullId" hx-boost="true">
+					<img src="/museum/@p.Id.FullId/@p.Images.First().Name" alt="@String.Join(", ", p.Tags)" />
+					@if (p.Images.Count > 1) {
+						<div class="overlay">
+							<div>
+								@p.Images.Count
+								<img class="stack" alt="Mutliple images indicator" src="@Assets["/media/image_stack.svg"]"/>
+							</div>
+						</div>
+					}
+					<div class="title">@p.Title</div>
+				</a>
 			</li>
 		}
 	</ul>

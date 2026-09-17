@@ -137,7 +137,7 @@ public sealed class SayingPayload : IPostPayload {
 	}
 	
 	public String GetMarkdown() {
-		return Utils.GetPostData<SayingPayload>(this.PostDirectory).Value.MarkdownContent;
+		return GetPostData(this).Value.MarkdownContent;
 	}
 }
 
@@ -231,6 +231,6 @@ public sealed class ArtifactPayload : IPostPayload {
 	}
 	
 	public String GetMarkdown() {
-		return Utils.GetPostData<ArtifactPayload>(this.PostDirectory).Value.MarkdownContent;
+		return GetPostData(this).Value.MarkdownContent;
 	}
 }

@@ -66,7 +66,7 @@ a::after {
 	@apply text-xxs no-underline align-middle pb-2;
 }
 
-.hidden-link-lmao {
+@utility hidden-link-lmao {
 	@apply px-0!;
 	
 	&::after {
@@ -163,27 +163,64 @@ nav {
 }
 
 .post-info-span {
-	@apply text-current/50;
+	@apply text-current/50 flex gap-4 items-center;
 }
 
 .artifactindex-holder {
-	display: flex;
-	flex-wrap: wrap;
 	list-style: none;
 	justify-content: space-evenly;
+	@apply gap-6 flex flex-wrap;
 }
 
 .artifactindex-component {
-	@apply rounded-md;
-	img:not(.artifactindex-overlay img) {
-		--size: calc(var(--spacing) * 100 - var(--spacing) * 4);
-		object-fit: cover;
-		@apply size-(--size);
-	}
-}
+	@apply relative rounded-md;
 
-.artifactindex-overlay {
-	@apply size-6 absolute top-0 right-0 m-4;
+	transition-property: scale;
+	transition-duration: 50ms;
+	transition-timing-function: ease-in;
+	scale: 100%;
+	
+	&:hover {
+		scale: 105%;
+		& img:not(.stack) {
+			@apply drop-shadow-2xl;
+		}
+	}
+
+	--size: calc(var(--spacing) * 80 - var(--spacing) * 4);
+	
+	img:not(.stack) {
+		object-fit: cover;
+		@apply size-(--size) rounded-lg;
+		transition-property: filter;
+		transition-duration: 50ms;
+		transition-timing-function: ease-in;
+		@apply drop-shadow-xl;
+	}
+	
+	.artifactindex-inner {
+		@apply block hidden-link-lmao hover:bg-transparent!;
+
+		.overlay {
+			scale: 90%;
+			@apply absolute top-2 right-2 p-2 bg-black/50 text-white rounded-2xl backdrop-blur-md shadow-md/80;
+			div {
+				@apply flex flex-row h-6 gap-2;
+				align-items: center;
+			}
+
+			img {
+				@apply h-4;
+			}
+		}
+	}
+	
+	.title {
+		@apply w-(--size) select-none;
+		text-overflow:ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+	}
 }
 
 .post-component {
